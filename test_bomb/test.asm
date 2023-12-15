@@ -32,9 +32,12 @@ arg4 EQU 20						; arg4 - pos_y
 
 symbol_width EQU 10
 symbol_height EQU 20
+symbol_object_width EQU 50
+symbol_object_height EQU 50
 include digits.inc
 include letters.inc
-
+include object.inc
+include bomber_man_map.inc
 button_up_x EQU area_width - 100	;上按鈕位置
 button_up_y EQU area_height - 150
 
@@ -95,9 +98,11 @@ make_digit:
 	lea esi, digits
 	jmp draw_text
 make_space:	
+	cmp eax, ' '
+	jne make_object
 	mov eax, 26 ;0到25是字母，26是空格
 	lea esi, letters
-	
+	jmp draw_text
 draw_text:
 	mov ebx, symbol_width
 	mul ebx
@@ -105,15 +110,16 @@ draw_text:
 	mul ebx
 	add esi, eax
 	mov ecx, symbol_height
+	jmp cycle_symbol_col
 cycle_symbol_col:
-	mov edi, [ebp+arg2] ; pointer la matricea de pixeli
-	mov eax, [ebp+arg4] ; pointer la coord y
+	mov edi, [ebp+arg2] ;指向像素數組的指針
+	mov eax, [ebp+arg4] ;指向 y 座標的指針
 	add eax, symbol_height
 	sub eax, ecx
 	mov ebx, area_width														
 	mul ebx
-	add eax, [ebp+arg3] ; pointer la coord x
-	shl eax, 2 ; inmultim cu 4, avem un DWORD per pixel
+	add eax, [ebp+arg3] ;指向 x 座標的指針
+	shl eax, 2			;乘以 4，每個像素有一個 DWORD
 	add edi, eax
 	push ecx
 	mov ecx, symbol_width
@@ -133,6 +139,63 @@ simbol_pixel_next:
 	popa
 	mov esp, ebp
 	pop ebp
+	jmp make_done
+make_object:
+	cmp eax, 'AA'	;牆
+	je object_done
+	cmp eax, 'AB'	;磚
+	je object_done
+	cmp eax, 'AC'	;路
+	je object_done
+	cmp eax, 'AD'	;門
+	je object_done
+	cmp eax, 'AE'	;玩家
+	je object_done
+	cmp eax, 'AF'	;敵人
+	je object_done
+	jmp make_done
+object_done:
+	sub eax,'AA'
+	lea esi, object
+	jmp draw_object
+draw_object:
+	mov ebx, symbol_object_width
+	mul ebx
+	mov ebx, symbol_object_height
+	mul ebx
+	add esi,0 ;eax
+	mov ecx, symbol_object_height
+	jmp cycle_symbol_object_col
+cycle_symbol_object_col:
+	mov edi, [ebp+arg2] ;指向像素數組的指針
+	mov eax, [ebp+arg4] ;指向 y 座標的指針
+	add eax, symbol_object_height
+	sub eax, ecx
+	mov ebx, area_width														
+	mul ebx
+	add eax, [ebp+arg3] ;指向 x 座標的指針
+	shl eax, 2			;乘以 4，每個像素有一個 DWORD
+	add edi, eax
+	push ecx
+	mov ecx, symbol_object_width
+cycle_symbol_object_row:
+	cmp byte ptr [esi], 0
+	je simbol_object_pixel_alb
+	mov dword ptr [edi], 0
+	jmp simbol_object_pixel_next
+simbol_object_pixel_alb:
+	mov dword ptr [edi], 0A7A6A5h
+simbol_object_pixel_next:
+	inc esi
+	add edi, 4
+	loop cycle_symbol_object_row
+	pop ecx
+	loop cycle_symbol_object_col
+	popa
+	mov esp, ebp
+	pop ebp
+	jmp make_done
+make_done:
 	ret
 make_text endp
 
@@ -355,6 +418,7 @@ local unbreakable, explosion_loop, breakable, crate, defeat, enemy
 	mov aux2, ESI
 	
 	mov aux, 0
+	;根據顏色執行不同的操作
 	explosion_loop:
 	calculate_pozition x,y, diff_x, diff_y
 	cmp dword ptr [EAX], 0FF69B4h
@@ -450,8 +514,8 @@ bomb_mechanism macro		;決定炸彈操作的巨集
 	mov counterBomb, 0
 	
 	mov explosion_check,1
-	;explozia
-	explosion bomb_x, bomb_y, 0F59B00h
+	
+	explosion bomb_x, bomb_y, 0F59B00h		;爆炸
 	
 	explosion_timer:
 	inc counterExplosion
@@ -556,7 +620,7 @@ endm
 
 ;繪圖函數 - 每次點擊時都會調用
 ;或每隔 200 毫秒一次，其中沒有點擊事件
-;arg1 - evt（0 - 初始化，1 - 單擊，2 - 未單擊的間隔已過期）
+;arg1 - evt（0 - 初始化，1 - 點擊，2 - 未點擊的間隔已過期）
 ;arg2 - x
 ;arg3 - y
 
@@ -567,9 +631,9 @@ draw proc
 	
 	mov eax, [ebp+arg1]
 	cmp eax, 1
-	jz evt_click ;s-a apasat pe ecran
+	jz evt_click ;點擊螢幕
 	cmp eax, 2
-	jz evt_timer ;nu s-a efectuat click pe nimic
+	jz evt_timer ;沒有點擊任何內容
 	
 	;初始化遊戲區域
 	mov eax, area_width
@@ -577,7 +641,7 @@ draw proc
 	mul ebx
 	shl eax, 2
 	push eax
-	push 0A7A6A5h ;coloram toata harta gri
+	push 0A7A6A5h ;將整個地圖塗成灰色
 	push area
 	call memset
 	add esp, 12
@@ -639,6 +703,7 @@ draw proc
 	make_text_macro 'O', area, area_width-86, area_height-86
 	make_text_macro 'M', area, area_width-76, area_height-86
 	make_text_macro 'B', area, area_width-66, area_height-86
+	;make_text_macro 'AA', area, area_width-300, area_height-300
 	
 	;牆的位置(暫時固定)
 	draw_square 150, 500, 0A0522Dh
@@ -677,6 +742,7 @@ evt_timer:
 	;檢查敵人的動向
 	cmp enemy_alive,1
 	jne final_draw
+	enemy_movement
 	enemy_movement
 	
 final_draw:
