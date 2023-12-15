@@ -640,7 +640,7 @@ draw proc
 	make_text_macro 'M', area, area_width-76, area_height-86
 	make_text_macro 'B', area, area_width-66, area_height-86
 	
-	;punem cateva cutii
+	;牆的位置(暫時固定)
 	draw_square 150, 500, 0A0522Dh
 	draw_square 250, 200, 0A0522Dh
 	draw_square 200, 250, 0A0522Dh
