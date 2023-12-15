@@ -12,7 +12,7 @@ extern BeginDrawing: proc
 
 public start
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;data
 .data
 
 window_title DB "Bomberman",0	;標題
@@ -35,54 +35,50 @@ symbol_height EQU 20
 include digits.inc
 include letters.inc
 
-button_up_x EQU area_width - 100	;Sageata Sus
+button_up_x EQU area_width - 100	;上按鈕位置
 button_up_y EQU area_height - 150
 
-button_left_x EQU area_width - 150	;Sageata Stanga
+button_left_x EQU area_width - 150	;左按鈕位置
 button_left_y EQU area_height - 100
 
-button_down_x EQU area_width - 100	;Sageata Jos
+button_down_x EQU area_width - 100	;下按鈕位置
 button_down_y EQU area_height - 50
 
-button_right_x EQU area_width - 50	;Sageata Dreapta
+button_right_x EQU area_width - 50	;右按鈕位置
 button_right_y EQU area_height - 100
 
-button_bomb_x EQU area_width - 100	;Buton Bomba
+button_bomb_x EQU area_width - 100	;炸彈按鈕位置
 button_bomb_y EQU area_height - 100
 
-bomberman_x DD 50		;coordonate Bomberman
+bomberman_x DD 50		;角色起始位置
 bomberman_y DD 50
 
-bomb_check DB 0	;verifica daca se poate plasa bomba
-bomb_x DD 0	;coord bomba
-bomb_y DD 0
-explosion_check DD 0 ;verifica daca exista o explozie(pentru stergere)
+bomb_check DB 0			;檢查是否可以放置炸彈
+bomb_x DD 0				;炸彈位置
+bomb_y DD 0	
+explosion_check DD 0	;檢查炸彈是否已經爆炸(用於刪除)
 
-enemy_x DD area_width-100,area_width-500	;coord inamic
+;要更動為多個敵人
+enemy_x DD area_width-100,area_width-500	;敵人初始位置
 enemy_y DD area_height-200,area_width-500
-enemy_alive DD 1, 1	;verifica daca inamicul traieste
+enemy_alive DD 1, 1							;檢查敵人是否還活著
 
-game_over_check DD 0 ; verifica daca jucatorul a pierdut
+game_over_check DD 0						;檢查玩家是否輸了
 
-aux DD 0	;variabile auxiliare
+aux DD 0			;輔助變數
 aux1 DD 0
 aux2 DD 0
-random_aux DD 371
+random_aux DD 371	;371可更動?
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-																					;FUNCTIE CUVINTE
+;code
 .code
-
-; procedura make_text afiseaza o litera sau o cifra la coordonatele date
-; arg1 - simbolul de afisat (litera sau cifra)
-; arg2 - pointer la vectorul de pixeli
-; arg3 - pos_x
-; arg4 - pos_y
+;make_text 程式在給定座標處顯示字母或數字
 make_text proc
 	push ebp
 	mov ebp, esp
 	pusha
 	
-	mov eax, [ebp+arg1] ; citim simbolul de afisat
+	mov eax, [ebp+arg1] ;將傳入參數 arg1 的值（即要顯示的字符）載入寄存器 eax 中。
 	cmp eax, 'A'
 	jl make_digit
 	cmp eax, 'Z'
@@ -99,7 +95,7 @@ make_digit:
 	lea esi, digits
 	jmp draw_text
 make_space:	
-	mov eax, 26 ; de la 0 pana la 25 sunt litere, 26 e space
+	mov eax, 26 ;0到25是字母，26是空格
 	lea esi, letters
 	
 draw_text:
@@ -109,7 +105,7 @@ draw_text:
 	mul ebx
 	add esi, eax
 	mov ecx, symbol_height
-bucla_simbol_linii:
+cycle_symbol_col:
 	mov edi, [ebp+arg2] ; pointer la matricea de pixeli
 	mov eax, [ebp+arg4] ; pointer la coord y
 	add eax, symbol_height
@@ -121,7 +117,7 @@ bucla_simbol_linii:
 	add edi, eax
 	push ecx
 	mov ecx, symbol_width
-bucla_simbol_coloane:
+cycle_symbol_row:
 	cmp byte ptr [esi], 0
 	je simbol_pixel_alb
 	mov dword ptr [edi], 0
@@ -131,9 +127,9 @@ simbol_pixel_alb:
 simbol_pixel_next:
 	inc esi
 	add edi, 4
-	loop bucla_simbol_coloane
+	loop cycle_symbol_row
 	pop ecx
-	loop bucla_simbol_linii
+	loop cycle_symbol_col
 	popa
 	mov esp, ebp
 	pop ebp
@@ -141,9 +137,8 @@ simbol_pixel_next:
 make_text endp
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-																						   ;MACROURI
-; un macro ca sa apelam mai usor desenarea simbolului
-make_text_macro macro symbol, drawArea, x, y
+;macro
+make_text_macro macro symbol, drawArea, x, y	;整合呼叫繪製符號的巨集
 	push y
 	push x
 	push drawArea
@@ -152,9 +147,8 @@ make_text_macro macro symbol, drawArea, x, y
 	add esp, 16
 endm
 
-; deseneaza o linie orizontala
-line_horizontal macro x, y, len, color
-local bucla_linie
+line_horizontal macro x, y, len, color	;畫一條水平線的巨集
+local loop_line
 	mov eax, y; EAX = y
 	mov ebx, area_width
 	mul ebx; EAX = y*area_width
@@ -163,15 +157,14 @@ local bucla_linie
 	add EAX, area
 	
 	mov ECX, len
-bucla_linie:
+loop_line:
 	mov dword ptr [eax], color
 	add EAX,4
-loop bucla_linie
+loop loop_line
 endm
 
-;deseneaza o linie verticala
-line_vertical macro x, y, len, color									
-local bucla_line
+line_vertical macro x, y, len, color	;畫一條垂直線的巨集
+local loop_line
 	mov eax, y; EAX = y
 	mov ebx, area_width
 	mul ebx; EAX = y*area_width
@@ -180,14 +173,13 @@ local bucla_line
 	add EAX, area
 	
 	mov ECX, len
-bucla_line:
+loop_line:
 	mov dword ptr [eax], color
 	add EAX,area_width*4
-loop bucla_line
+loop loop_line
 endm
 
-;deseneaza un patrat(folosind liniile anterioare)
-draw_square macro x,y, color
+draw_square macro x,y, color	;畫一個正方形（使用前面的線）的巨集
 local square_loop
 	mov EDI, y
 	mov ESI, 0
@@ -200,8 +192,7 @@ local square_loop
 	jne square_loop
 endm
 
-;macro ce deseneaza sageti
-draw_arrow macro dir,x,y,color
+draw_arrow macro dir,x,y,color	;繪製箭頭的巨集
 local up, left, down, right, finish
 	mov aux1, dir
 	mov ESI, 50
@@ -255,8 +246,7 @@ local up, left, down, right, finish
 	finish:
 endm
 
-;macro ce verifica apasarea butoanelor de directie
-press_button macro x,y,button_x,button_y, diff_x, diff_y
+press_button macro x,y,button_x,button_y, diff_x, diff_y	;檢查方向按鈕按下情況的巨集
 local button_fail, bomb_case, defeat
 	mov EAX, x
 	cmp EAX, button_x
@@ -294,8 +284,7 @@ local button_fail, bomb_case, defeat
 	button_fail:
 endm
 
-;macro ce verifica apasarea butonului bomba
-press_button_bomb macro x,y
+press_button_bomb macro x,y		;驗證按下炸彈按鈕的巨集
 local button_fail
 	mov EAX, x
 	cmp EAX, button_bomb_x
@@ -321,8 +310,7 @@ local button_fail
 	button_fail:
 endm
 
-;macro ce calculeaza pozitia in functie de coordonate
-calculate_pozition macro x,y,diff_x,diff_y
+calculate_pozition macro x,y,diff_x,diff_y		;根據座標計算位置的巨集
 	mov EAX, y; EAX = y
 	add EAX, diff_y
 	mov EBX, area_width
@@ -333,8 +321,7 @@ calculate_pozition macro x,y,diff_x,diff_y
 	add EAX, area
 endm
 
-;macro in cazul in care jucatorul pierde
-game_over macro
+game_over macro				;遊戲結束的巨集
 	mov enemy_alive,0
 	mov bomb_check,0 
 
@@ -360,8 +347,7 @@ game_over macro
 	
 endm
 
-;macro pentru zonele afectate de explozie
-explosion_radius macro x, y, diff_x, diff_y, color
+explosion_radius macro x, y, diff_x, diff_y, color		;受爆炸影響的區域的巨集
 local unbreakable, explosion_loop, breakable, crate, defeat, enemy
 	mov ESI, bomb_x
 	mov aux1, ESI
@@ -415,8 +401,7 @@ local unbreakable, explosion_loop, breakable, crate, defeat, enemy
 	
 endm
 
-;macro-ul de control al exploziei
-explosion macro x,y, color
+explosion macro x,y, color	;爆炸控制的巨集
 local no_defeat, finish
 	
 	explosion_radius x, y, 50, 0, color
@@ -441,15 +426,15 @@ local no_defeat, finish
 	finish:
 endm
 
-;macro ce determina functionarea bombei
-bomb_mechanism macro 
+
+bomb_mechanism macro		;決定炸彈操作的巨集
 	cmp explosion_check,1
 	je explosion_timer
 	
 	cmp bomb_check,1
 	jne no_bomb
 	
-	;flick
+	;按下按鈕
 	calculate_pozition bomb_x,bomb_y, 0, 0
 	cmp dword ptr [EAX], 0h
 	jne black
@@ -486,12 +471,11 @@ bomb_mechanism macro
 	no_bomb:
 endm
 
-;macro ce determina o valoare aleatoare de (0-3)
-random macro
+random macro			;決定隨機值 (0-3) 的巨集
 	mov EAX, random_aux
 	mul bomberman_y
 	add EAX, bomberman_x
-	mov aux1,773
+	mov aux1,773	;原773
 	mov EDX, 0
 	div aux1
 	mov random_aux, EDX
@@ -502,8 +486,7 @@ random macro
 	div EBX
 endm
 
-;macro ce determina miscarile inamicului
-enemy_movement macro
+enemy_movement macro		;決定敵人行動的巨集
 local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	inc counterEnemy
 	cmp counterEnemy, 5
@@ -569,13 +552,13 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-																							;PROCEDURI
+;procedure
 
-; functia de desenare - se apeleaza la fiecare click
-; sau la fiecare interval de 200ms in care nu s-a dat click
-; arg1 - evt (0 - initializare, 1 - click, 2 - s-a scurs intervalul fara click)
-; arg2 - x
-; arg3 - y
+;繪圖函數 - 每次點擊時都會調用
+;或每隔 200 毫秒一次，其中沒有點擊事件
+;arg1 - evt（0 - 初始化，1 - 單擊，2 - 未單擊的間隔已過期）
+;arg2 - x
+;arg3 - y
 
 draw proc
 	push ebp
@@ -588,7 +571,7 @@ draw proc
 	cmp eax, 2
 	jz evt_timer ;nu s-a efectuat click pe nimic
 	
-	;intializeaza zona de joc
+	;初始化遊戲區域
 	mov eax, area_width
 	mov ebx, area_height
 	mul ebx
@@ -601,7 +584,7 @@ draw proc
 	
 	mov ESI, 50
 	
-	;trasam linii albe pe verticala si orizontala 
+	;繪製垂直和水平白線
 	horizontal_white:
 	line_horizontal 0, ESI, area_width*50, 0FFFFFFh	
 	add ESI, 100
@@ -623,7 +606,7 @@ draw proc
 	
 	mov ESI, area_height-50
 	
-	;completam marginile
+	;完成邊緣
 	left_border:
 	line_horizontal 0, ESI, 50, 0A7A6A5h
 	dec ESI
@@ -638,11 +621,11 @@ draw proc
 	cmp ESI, 0
 	jne right_border
 	
-	;plasam jucatorul si inamicul
+	;放置玩家和敵人
 	draw_square 50, 50, 0FF0000h
 	draw_square area_width-100, area_height-200, 0FF69B4h
 	
-	;initializam zona butoanelor de directie
+	;初始化方向按鈕的區域
 	draw_square area_width-100, area_height-100, 0A7A6A5h 
 	draw_square area_width-100, area_height-150, 0A7A6A5h
 	draw_square area_width-150, area_height-100, 0A7A6A5h
@@ -673,7 +656,7 @@ draw proc
 	jmp final_draw
 	
 evt_click:
-	;verificam apasarea butoanelor
+	;檢查按鈕的按下狀況
 	cmp game_over_check,1
 	je final_draw
 	press_button[ebp+arg2], [ebp+arg3], button_up_x, button_up_y, 0, -50
@@ -683,15 +666,15 @@ evt_click:
 	press_button_bomb [ebp+arg2], [ebp+arg3]
 	
 evt_timer:
-	;verificam daca jucatorul a pierdut
+	;檢查玩家是否輸了
 	cmp game_over_check,1
 	je final_draw
 	
-	;verificam bomba
+	;檢查炸彈
 	inc counter
 	bomb_mechanism
 	
-	;verificam miscarile inamicului
+	;檢查敵人的動向
 	cmp enemy_alive,1
 	jne final_draw
 	enemy_movement
@@ -704,9 +687,9 @@ final_draw:
 draw endp
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-																					           ;MAIN
+;Main
 start:
-	;alocam memorie pentru zona de desenat
+	;為繪圖區分配內存
 	mov eax, area_width
 	mov ebx, area_height
 	mul ebx
@@ -716,7 +699,7 @@ start:
 	add esp, 4
 	mov area, eax
 	
-	;apelam functia BEGIN DRAWING
+	;呼叫 BEGIN DRAWING 函數
 	push offset draw
 	push area
 	push area_height
@@ -725,7 +708,7 @@ start:
 	call BeginDrawing
 	add esp, 20
 	
-	;terminarea programului
+	;終止程序
 	push 0
 	call exit
 end start
