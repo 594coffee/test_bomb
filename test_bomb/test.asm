@@ -37,11 +37,8 @@ arg4 EQU 20						; arg4 - pos_y
 
 symbol_width EQU 10
 symbol_height EQU 20
-symbol_object_width EQU 50
-symbol_object_height EQU 50
 include digits.inc
 include letters.inc
-include object.inc
 include bomber_man_map.inc
 include picture.inc
 button_up_x EQU area_width - 100	;上按鈕位置
@@ -108,7 +105,7 @@ make_digit:
 	jmp draw_text
 make_space:	
 	cmp eax, ' '
-	jne make_object
+	jne make_done
 	mov eax, 26 ;0到25是字母，26是空格
 	lea esi, letters
 	jmp draw_text
@@ -148,62 +145,6 @@ simbol_pixel_next:
 	popa
 	mov esp, ebp
 	pop ebp
-	jmp make_done
-make_object:
-	cmp eax, 'AA'	;牆
-	je object_done
-	cmp eax, 'AB'	;磚
-	je object_done
-	cmp eax, 'AC'	;路
-	je object_done
-	cmp eax, 'AD'	;門
-	je object_done
-	cmp eax, 'AE'	;玩家
-	je object_done
-	cmp eax, 'AF'	;敵人
-	je object_done
-	jmp make_done
-object_done:
-	sub eax,'AA'
-	lea esi, object;picture;
-	jmp draw_object
-draw_object:
-	mov ebx, symbol_object_width
-	mul ebx
-	mov ebx, symbol_object_height
-	mul ebx
-	add esi,eax
-	mov ecx, symbol_object_height
-	jmp cycle_symbol_object_col
-cycle_symbol_object_col:
-	mov edi, [ebp+arg2] ;指向像素數組的指針
-	mov eax, [ebp+arg4] ;指向 y 座標的指針
-	add eax, symbol_object_height
-	sub eax, ecx
-	mov ebx, area_width														
-	mul ebx
-	add eax, [ebp+arg3] ;指向 x 座標的指針
-	shl eax, 2			;乘以 4，每個像素有一個 DWORD
-	add edi, eax
-	push ecx
-	mov ecx, symbol_object_width
-cycle_symbol_object_row:
-	cmp byte ptr [esi], 0
-	je simbol_object_pixel_alb
-	mov dword ptr [edi], 0
-	jmp simbol_object_pixel_next
-simbol_object_pixel_alb:
-	mov dword ptr [edi], 0A7A6A5h
-simbol_object_pixel_next:
-	inc esi
-	add edi, 4
-	loop cycle_symbol_object_row
-	pop ecx
-	loop cycle_symbol_object_col
-	popa
-	mov esp, ebp
-	pop ebp
-	jmp make_done
 make_done:
 	ret
 make_text endp
