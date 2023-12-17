@@ -28,6 +28,7 @@ counterEnemy2 DD 0				;敵人2計時器初始為0
 counterMap DD 0					;地圖編號初始為0
 map_x DD 0
 map_y DD 0
+door_seed DD 0
 
 arg1 EQU 8						; arg1 - 要顯示的符號（字母或數字）
 arg2 EQU 12						; arg2 - 指向像素向量的指針
@@ -435,68 +436,79 @@ game_over macro				;遊戲結束的巨集
 	
 endm
 
-explosion_radius macro x, y, diff_x, diff_y, color		;受爆炸影響的區域的巨集
-local unbreakable, explosion_loop, breakable, crate, defeat, enemy1, enemy2
-	mov ESI, bomb_x
-	mov aux1, ESI
-	mov ESI, bomb_y
-	mov aux2, ESI
-	
-	mov aux, 0
-	;根據顏色執行不同的操作
-	explosion_loop:
-	calculate_pozition x,y, diff_x, diff_y
-	cmp dword ptr [EAX], 0FF69B4h
-	je enemy1
-	cmp dword ptr [EAX], 00069B4h
-	je enemy2
-	cmp dword ptr [EAX], 0FF0000h
-	je defeat
-	cmp dword ptr [EAX], 0A0522Dh
-	je crate
-	cmp dword ptr [EAX], 0F59B00h
-	je breakable
-	cmp dword ptr [EAX], 0FFFFFFh
-	jne unbreakable
-	breakable:
-	add x, diff_x
-	add y, diff_y
-	draw_square x, y, color
-	inc aux
-	cmp aux, 4
-	jne explosion_loop
-	jmp unbreakable
-	
-	defeat:
-	game_over
-	jmp unbreakable
-	
-	crate:
-	add x, diff_x
-	add y, diff_y
-	draw_square x, y, 0FFFFFFh
-	jmp unbreakable
-	
-	enemy1:
-	add x, diff_x
-	add y, diff_y
-	draw_square x, y, 0FFFFFFh
-	mov enemy1_alive,0
-	jmp unbreakable
+explosion_radius macro x, y, diff_x, diff_y, color        ;受爆炸影響的區域的巨集
+local unbreakable, explosion_loop, breakable, crate, defeat, enemy1, enemy2, open_door
+    mov ESI, bomb_x
+    mov aux1, ESI
+    mov ESI, bomb_y
+    mov aux2, ESI
 
-	enemy2:
+    mov aux, 0
+    ;根據顏色執行不同的操作
+    explosion_loop:
+    calculate_pozition x,y, diff_x, diff_y
+    cmp dword ptr [EAX], 0FF69B4h    ;敵人1
+    je enemy1
+    cmp dword ptr [EAX], 00069B4h    ;敵人2
+    je enemy2
+    cmp dword ptr [EAX], 0FF0000h    ;玩家
+    je defeat
+    cmp dword ptr [EAX], 0A0522Dh    ;磚
+    je crate
+	cmp dword ptr [EAX], 0A0522Eh    ;磚(有門)
+    je open_door
+    cmp dword ptr [EAX], 0F59B00h    ;爆炸
+    je breakable
+    cmp dword ptr [EAX], 0FFFFFFh    ;路
+    jne unbreakable
+    breakable:
+    add x, diff_x
+    add y, diff_y
+    draw_square x, y, color
+    inc aux
+    cmp aux, 4
+    jne explosion_loop
+    jmp unbreakable
+
+    defeat:
+    game_over
+    jmp unbreakable
+
+    crate:
+    add x, diff_x
+    add y, diff_y
+    ;random_door_seed
+    ;cmp door_seed, 0
+    ;je open_door
+    draw_square x, y, 0FFFFFFh
+    jmp unbreakable
+
+    open_door:
 	add x, diff_x
-	add y, diff_y
-	draw_square x, y, 0FFFFFFh
-	mov enemy2_alive,0
-	
-	unbreakable:
-	
-	mov ESI, aux1
-	mov bomb_x, ESI
-	mov ESI, aux2
-	mov bomb_y,ESI
-	
+    add y, diff_y
+    draw_square x, y, 000FF00h
+    jmp unbreakable
+
+    enemy1:
+    add x, diff_x
+    add y, diff_y
+    draw_square x, y, 0FFFFFFh
+    mov enemy1_alive,0
+    jmp unbreakable
+
+    enemy2:
+    add x, diff_x
+    add y, diff_y
+    draw_square x, y, 0FFFFFFh
+    mov enemy2_alive,0
+
+    unbreakable:
+
+    mov ESI, aux1
+    mov bomb_x, ESI
+    mov ESI, aux2
+    mov bomb_y,ESI
+
 endm
 
 explosion macro x,y, color	;爆炸控制的巨集
@@ -570,7 +582,7 @@ bomb_mechanism macro		;決定炸彈操作的巨集
 endm
 
 create_map macro		;製作地圖的巨集
-local done, m0, m1, m2, m3, loop_, done, wall, crate, road
+local done, m0, m1, m2, m3, loop_, done, wall, crate, road, door
 random
 ;磚的位置不能同時為100倍(以及50,50、50,100、100,50不要有)
 	push ebp
@@ -585,12 +597,18 @@ random
 	add ESI, EAX
 
 	loop_:
+	cmp byte ptr [esi],0
+	je door
 	cmp byte ptr [esi],1
 	je wall
 	cmp byte ptr [esi],2
 	je crate
 	cmp byte ptr [esi],3
 	je road
+
+	door:
+	draw_square map_x, map_y, 0A0522Eh
+	jmp next
 
 	wall:
 	draw_square map_x, map_y, 0A7A6A5h
@@ -683,18 +701,29 @@ done:
 	pop ebp
 endm
 
-random_map_seed macro
-    rdtsc                 ; 讀取時間戳計數器
-    mov random_aux, EAX   ; 使用時間戳計數器的值作為隨機數
-    mov EAX, random_aux
-    mov EBX, 17
-    mov EDX, 0
-    div EBX
-	mov EBX, 50
-	mov EAX, EDX
-	mul EBX
-	add EAX, 50
-	;更改EAX
+random_door_seed macro	;決定隨機值 (0-1) 的巨集
+	push eax
+	push ebx
+	push ecx
+	push edx
+	mov EAX, random_aux
+	mul bomberman_y
+	add EAX, bomberman_x
+	mov aux1,773	
+	mov EDX, 0
+	div aux1
+	mov random_aux, EDX
+	
+	mov EAX, random_aux
+	mov EBX,2
+	mov EDX,0
+	div EBX
+	mov door_seed, edx
+	;更改EDX
+	pop edx
+	pop ecx
+	pop ebx
+	pop eax
 endm
 
 random macro			;決定隨機值 (0-3) 的巨集
