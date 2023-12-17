@@ -519,12 +519,15 @@ game_over macro				;遊戲結束的巨集
 endm
 
 explosion_radius macro x, y, diff_x, diff_y, color        ;受爆炸影響的區域的巨集
-local unbreakable, explosion_loop, breakable, crate, defeat, enemy1, enemy2, open_door, take_tool1, take_tool2
+local unbreakable, explosion_loop, clear_loop, breakable, crate, defeat, enemy1, enemy2, open_door, take_tool1, take_tool2
     mov ESI, bomb_x
     mov aux1, ESI
     mov ESI, bomb_y
     mov aux2, ESI
 
+	mov ecx, color
+	cmp ecx, 0FFFFFFh
+	je clear_loop
     mov aux, 0
     ;根據顏色執行不同的操作
     explosion_loop:
@@ -547,6 +550,7 @@ local unbreakable, explosion_loop, breakable, crate, defeat, enemy1, enemy2, ope
     je breakable
     cmp dword ptr [eax], 0FFFFFFh    ;路
     jne unbreakable
+
     breakable:
     add x, diff_x
     add y, diff_y
@@ -597,6 +601,19 @@ local unbreakable, explosion_loop, breakable, crate, defeat, enemy1, enemy2, ope
     add y, diff_y
     draw_square x, y, 0FFFFFFh
     mov enemy2_alive,0
+	jmp unbreakable
+
+	clear_loop:
+    calculate_pozition x, y, diff_x, diff_y
+	cmp dword ptr [eax], 0F59B00h    ;爆炸
+	jne unbreakable
+    add x, diff_x
+    add y, diff_y
+    draw_square x, y, color
+    inc aux
+	mov edx, bombrange
+    cmp aux, edx
+    jne clear_loop
 
     unbreakable:
 
