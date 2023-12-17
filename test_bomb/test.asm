@@ -326,21 +326,25 @@ local button_fail, bomb_case, defeat, to_next, get_tool1, road, get_tool2, cantp
 	
 	canpass1:
 	mov last, 1
+	mov bomb_check, 1
 	mov lastwall, 1
 	jmp road
 
 	canpass2:
 	mov last, 1
+	mov bomb_check, 1
 	mov lastdoor, 1
 	jmp road
 
 	canpass3:
 	mov last, 1
+	mov bomb_check, 1
 	mov lasttool1, 1
 	jmp road
 
 	canpass4:
 	mov last, 1
+	mov bomb_check, 1
 	mov lasttool2, 1
 	jmp road
 
@@ -358,7 +362,10 @@ local button_fail, bomb_case, defeat, to_next, get_tool1, road, get_tool2, cantp
 	jmp bomb_case
 
 	iswall:
+	cmp dword ptr [eax], 0FFFFFFh
+	jne button_fail
 	mov last, 0
+	mov bomb_check, 0
 	cmp lastwall, 1
 	je drawwall
 	cmp lastdoor, 1
@@ -627,6 +634,15 @@ endm
 
 
 bomb_mechanism macro		;決定炸彈操作的巨集
+local canbomb
+	cmp counterBomb, 0
+	jne canbomb
+	cmp counterExplosion, 0
+	jne explosion_timer
+	cmp last, 0
+	jne no_bomb
+
+	
 	cmp explosion_check,1
 	je explosion_timer
 	
@@ -634,6 +650,7 @@ bomb_mechanism macro		;決定炸彈操作的巨集
 	jne no_bomb
 	
 	;按下按鈕
+	canbomb:
 	calculate_pozition bomb_x,bomb_y, 0, 0
 	cmp dword ptr [eax], 0h
 	jne black
@@ -819,7 +836,7 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	reroll:	
 	random
 	
-	cmp edx,0
+	cmp edx, 0
 	je up
 	cmp edx, 1
 	je left
@@ -831,25 +848,37 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	up:
 	mov aux, 0
 	mov aux1, -50
+	calculate_pozition enemy1_x,enemy1_y,aux, aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne reroll
 	jmp skip
 	
 	left:
 	mov aux, -50
 	mov aux1, 0
+	calculate_pozition enemy1_x,enemy1_y,aux, aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne reroll
 	jmp skip
 	
 	right:
 	mov aux, 50
 	mov aux1, 0
+	calculate_pozition enemy1_x,enemy1_y,aux, aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne reroll
 	jmp skip
 	
 	down:
 	mov aux, 0
 	mov aux1, 50
+	calculate_pozition enemy1_x,enemy1_y,aux, aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne reroll
 	jmp skip
 	
 	skip:
-	mov counterEnemy1,0
+	mov counterEnemy1, 0
 	calculate_pozition enemy1_x,enemy1_y,aux, aux1
 	cmp dword ptr [eax], 0FF0000h
 	je defeat
