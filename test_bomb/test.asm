@@ -361,6 +361,8 @@ local button_fail, bomb_case, defeat, to_next, get_tool1, road, get_tool2, cantp
 	mov last, 0
 	cmp lastwall, 1
 	je drawwall
+	cmp lastdoor, 1
+	je drawdoor
 	cmp lasttool1, 1
 	je drawtool1
 	cmp lasttool2, 1
