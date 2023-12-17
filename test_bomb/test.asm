@@ -649,14 +649,6 @@ local has_next, nextend
     jmp nextend
 
     has_next:
-    mov enemy1_alive,1
-    mov enemy2_alive,1
-	mov enemy3_alive,1
-	mov enemy4_alive,1
-    mov enemy5_alive,1
-	mov enemy6_alive,1
-	mov enemy7_alive,1
-    mov enemy8_alive,1
     mov bomb_check,0 
 
     ; 清空當前地圖
@@ -1180,7 +1172,7 @@ random macro			;決定隨機值 (0-4) 的巨集
 	mov random_aux, edx
 	
 	mov eax, random_aux
-	mov ebx,5
+	mov ebx,4;5
 	mov edx,0
 	div ebx
 	;更改edx
@@ -1203,8 +1195,8 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	je down
 	cmp edx, 3
 	je right
-	cmp edx, 4
-	je skip
+	;cmp edx, 4
+	;je skip
 	
 	up:
 	mov aux, 0
@@ -1281,8 +1273,8 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	je down
 	cmp edx, 3
 	je right
-	cmp edx, 4
-	je skip
+	;cmp edx, 4
+	;je skip
 	
 	up:
 	mov aux, 0
@@ -1359,8 +1351,8 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	je down
 	cmp edx, 3
 	je right
-	cmp edx, 4
-	je skip
+	;cmp edx, 4
+	;je skip
 	
 	up:
 	mov aux, 0
@@ -1437,8 +1429,8 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	je down
 	cmp edx, 3
 	je right
-	cmp edx, 4
-	je skip
+	;cmp edx, 4
+	;je skip
 	
 	up:
 	mov aux, 0
@@ -1515,8 +1507,8 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	je down
 	cmp edx, 3
 	je right
-	cmp edx, 4
-	je skip
+	;cmp edx, 4
+	;je skip
 	
 	up:
 	mov aux, 0
@@ -1593,8 +1585,8 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	je down
 	cmp edx, 3
 	je right
-	cmp edx, 4
-	je skip
+	;cmp edx, 4
+	;je skip
 	
 	up:
 	mov aux, 0
@@ -1671,8 +1663,8 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	je down
 	cmp edx, 3
 	je right
-	cmp edx, 4
-	je skip
+	;cmp edx, 4
+	;je skip
 	
 	up:
 	mov aux, 0
@@ -1749,8 +1741,8 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	je down
 	cmp edx, 3
 	je right
-	cmp edx, 4
-	je skip
+	;cmp edx, 4
+	;je skip
 	
 	up:
 	mov aux, 0
