@@ -64,7 +64,7 @@ bomb_x DD 0				;炸彈位置
 bomb_y DD 0	
 explosion_check DD 0	;檢查炸彈是否已經爆炸(用於刪除)
 
-enemy_num DD 2								;敵人總數
+;enemy_num DD 2								;敵人總數
 enemy1_x DD area_width-100,area_width-500	;敵人1初始位置
 enemy1_y DD area_height-200,area_width-500
 enemy1_alive DD 1, 1						;檢查敵人1是否還活著
@@ -340,10 +340,14 @@ local button_fail, bomb_case, defeat
 	cmp EAX, button_y+50
 	jg button_fail
 	
-	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y
+	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y	;遇到敵人1
 	cmp dword ptr [EAX], 0FF69B4h
 	je defeat
 	
+	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y	;遇到敵人2
+	cmp dword ptr [EAX], 00069B4h
+	je defeat
+
 	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y
 	cmp dword ptr [EAX], 0FFFFFFh
 	jne button_fail
@@ -412,7 +416,7 @@ game_over macro				;遊戲結束的巨集
 	mul ebx
 	shl eax, 2
 	push eax
-	push 0A7A6A5h ;整個地圖塗成灰色
+	push 0A7A6A5h			;整個地圖塗成灰色
 	push area
 	call memset
 	add esp, 12
@@ -565,7 +569,7 @@ endm
 create_map macro		;製作地圖的巨集
 local done, m0, m1, m2, m3
 random
-;磚的位置不能同時為100倍
+;磚的位置不能同時為100倍(以及最好50,50、50,100、100,50不要有)
 m0:
 	cmp edx, 0
 	jne m1
@@ -660,7 +664,7 @@ random macro			;決定隨機值 (0-3) 的巨集
 	;更改EDX
 endm
 
-enemy1_movement macro		;決定敵人行動的巨集
+enemy1_movement macro		;決定敵人1行動的巨集
 local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	inc counterEnemy1
 	cmp counterEnemy1, 5
@@ -719,13 +723,13 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	jmp no_movement
 	
 	defeat:
-	;game_over
+	game_over
 	
 	no_movement:
 	
 endm
 
-enemy2_movement macro		;決定敵人行動的巨集
+enemy2_movement macro		;決定敵人2行動的巨集
 local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	inc counterEnemy2
 	cmp counterEnemy2, 5
@@ -734,7 +738,7 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	reroll:	
 	random
 	
-	cmp EDX,0
+	cmp EDX, 0
 	je up
 	cmp EDX, 1
 	je left
@@ -784,7 +788,7 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	jmp no_movement
 	
 	defeat:
-	;game_over
+	game_over
 	
 	no_movement:
 	
@@ -905,18 +909,23 @@ evt_timer:
 	bomb_mechanism
 	
 	;檢查敵人的動向
+	enemy1:
 	cmp enemy1_alive,1
-	jne count
+	jne enemy2
 	enemy1_movement
+
+	enemy2:
 	cmp enemy2_alive,1
-	jne count
+	jne final_draw
 	enemy2_movement
-	jmp final_draw
-count:
-	sub enemy_num, 1 
-	cmp enemy_num, 0
-	jmp final_draw
-final_draw:
+	;jmp final_draw
+
+	;count:
+	;sub enemy_num, 1 
+	;cmp enemy_num, 0
+	;jmp final_draw
+
+	final_draw:
 	popa
 	mov esp, ebp
 	pop ebp
