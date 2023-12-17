@@ -72,7 +72,12 @@ enemy2_x DD area_width-200;,area_width-500	;敵人2初始位置
 enemy2_y DD area_height-300;,area_width-500
 enemy2_alive DD 1, 1						;檢查敵人2是否還活著
 game_over_check DD 0						;檢查玩家是否輸了
-
+pass_wall DD 0                                ;檢查是否可以穿牆
+lastdoor DD 0                                ;儲存人物移動的上一個區塊顏色
+lastwall DD 0                                ;儲存人物移動的上一個區塊顏色
+lasttool1 DD 0                                ;儲存人物移動的上一個區塊顏色
+lasttool2 DD 0                                ;儲存人物移動的上一個區塊顏色
+last DD 0                                ;儲存人物是否站在牆上
 
 aux DD 0			;輔助變數
 aux1 DD 0
@@ -272,7 +277,7 @@ local up, left, down, right, finish
 endm
 
 press_button macro x,y,button_x,button_y, diff_x, diff_y	;檢查方向按鈕按下情況的巨集
-local button_fail, bomb_case, defeat, to_next, get_tool1, road
+local button_fail, bomb_case, defeat, to_next, get_tool1, road, get_tool2, cantpass, canpass1, canpass2, canpass3, canpass4, iswall, drawdoor, drawwall, drawtool1, drawtool2
 	mov eax, x
 	cmp eax, button_x
 	jl button_fail
@@ -300,9 +305,49 @@ local button_fail, bomb_case, defeat, to_next, get_tool1, road
 	cmp dword ptr [eax], 0FFFF00h
 	je get_tool1
 
+	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y	;遇到道具2
+	cmp dword ptr [eax], 0A300E5h
+	je get_tool2
+
 	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y
+	cmp pass_wall, 0
+	je cantpass
+	cmp dword ptr [eax], 0A0522Dh			;遇到牆
+	je canpass1
+	cmp dword ptr [eax], 0A0522Eh			;遇到牆(門)
+	je canpass2
+	cmp dword ptr [eax], 0A0522Ch			;遇到牆(道具1)
+	je canpass3
+	cmp dword ptr [eax], 0A0532Dh			;遇到牆(道具2)
+	je canpass4
+	cmp last, 1
+	je iswall
+	jmp cantpass
+	
+	canpass1:
+	mov last, 1
+	mov lastwall, 1
+	jmp road
+
+	canpass2:
+	mov last, 1
+	mov lastdoor, 1
+	jmp road
+
+	canpass3:
+	mov last, 1
+	mov lasttool1, 1
+	jmp road
+
+	canpass4:
+	mov last, 1
+	mov lasttool2, 1
+	jmp road
+
+	cantpass:
 	cmp dword ptr [eax], 0FFFFFFh
 	jne button_fail
+
 	
 	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y
 	cmp dword ptr [eax], 0h
@@ -310,6 +355,38 @@ local button_fail, bomb_case, defeat, to_next, get_tool1, road
 
 	road:
 	draw_square bomberman_x, bomberman_y, 0FFFFFFh
+	jmp bomb_case
+
+	iswall:
+	mov last, 0
+	cmp lastwall, 1
+	je drawwall
+	cmp lasttool1, 1
+	je drawtool1
+	cmp lasttool2, 1
+	je drawtool2
+	jmp bomb_case
+	
+	drawdoor:
+	draw_square bomberman_x, bomberman_y, 0A0522Eh
+	mov lastdoor, 0
+	jmp bomb_case
+
+	drawwall:
+	draw_square bomberman_x, bomberman_y, 0A0522Dh
+	mov last, 0
+	jmp bomb_case
+
+	drawtool1:
+	draw_square bomberman_x, bomberman_y, 0A0522Ch
+	mov lasttool1, 0
+	jmp bomb_case
+
+	drawtool2:
+	draw_square bomberman_x, bomberman_y, 0A0532Dh
+	mov lasttool2, 0
+	jmp bomb_case
+
 	bomb_case:
 	add bomberman_y, diff_y
 	add bomberman_x, diff_x
@@ -327,6 +404,11 @@ local button_fail, bomb_case, defeat, to_next, get_tool1, road
 	get_tool1:
 		tool1
 		jmp road
+
+	get_tool2:
+		tool2
+		jmp road
+
 	button_fail:
 endm
 
@@ -371,9 +453,13 @@ tool1 macro                ;獲得道具1的巨集
     inc bombrange
 endm
 
+tool2 macro                ;獲得道具2的巨集
+    mov pass_wall, 1
+endm
+
 next_level macro            ;切換下一關的巨集
-    mov enemy1_alive,0
-    mov enemy2_alive,0
+    mov enemy1_alive,1
+    mov enemy2_alive,1
     mov bomb_check,0 
 
     ; 清空當前地圖
@@ -424,7 +510,7 @@ game_over macro				;遊戲結束的巨集
 endm
 
 explosion_radius macro x, y, diff_x, diff_y, color        ;受爆炸影響的區域的巨集
-local unbreakable, explosion_loop, breakable, crate, defeat, enemy1, enemy2, open_door, take_tool1
+local unbreakable, explosion_loop, breakable, crate, defeat, enemy1, enemy2, open_door, take_tool1, take_tool2
     mov ESI, bomb_x
     mov aux1, ESI
     mov ESI, bomb_y
@@ -446,6 +532,8 @@ local unbreakable, explosion_loop, breakable, crate, defeat, enemy1, enemy2, ope
     je open_door
 	cmp dword ptr [eax], 0A0522Ch    ;磚(有道具1)
     je take_tool1
+	cmp dword ptr [eax], 0A0532Dh    ;磚(有道具2)
+    je take_tool2
     cmp dword ptr [eax], 0F59B00h    ;爆炸
     je breakable
     cmp dword ptr [eax], 0FFFFFFh    ;路
@@ -464,6 +552,12 @@ local unbreakable, explosion_loop, breakable, crate, defeat, enemy1, enemy2, ope
 	add x, diff_x
     add y, diff_y
     draw_square x, y, 0FFFF00h
+    jmp unbreakable
+
+	take_tool2:
+	add x, diff_x
+    add y, diff_y
+    draw_square x, y, 0A300E5h
     jmp unbreakable
 
     defeat:
@@ -575,7 +669,7 @@ bomb_mechanism macro		;決定炸彈操作的巨集
 endm
 
 create_map macro		;製作地圖的巨集
-local done, loop_, wall, crate, road, door, tool, enemy1, enemy2, next
+local done, loop_, wall, crate, road, door, tool1, tool2, tool3, enemy1, enemy2, next
 random
 ;磚的位置不能同時為100倍(以及50,50、50,100、100,50不要有)
 	push ebp
@@ -599,11 +693,16 @@ random
 	cmp byte ptr [esi],3
 	je road
 	cmp byte ptr [esi],4
-	je tool
+	je tool1
 	cmp byte ptr [esi],5
-	je enemy1
+	je tool2
 	cmp byte ptr [esi],6
+	je tool3
+	cmp byte ptr [esi],7
+	je enemy1
+	cmp byte ptr [esi],8
 	je enemy2
+	
 
 	door:
 	draw_square map_x, map_y, 0A0522Eh
@@ -621,10 +720,18 @@ random
 	draw_square map_x, map_y, 0FFFFFFh
 	jmp next
 	
-	tool:
+	tool1:
 	draw_square map_x, map_y, 0A0522Ch
 	jmp next
+
+	tool2:
+	draw_square map_x, map_y, 0A0532Dh
+	jmp next
 	
+	tool3:
+	;draw_square map_x, map_y, 0A0532Dh
+	jmp next
+
 	enemy1:
 	mov eax,map_x
 	mov enemy1_x, eax
