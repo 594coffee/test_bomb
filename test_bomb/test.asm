@@ -62,6 +62,7 @@ bomberman_y DD 50
 bomb_check DB 0			;檢查是否可以放置炸彈
 bomb_x DD 0				;炸彈位置
 bomb_y DD 0	
+bombrange DD 2
 explosion_check DD 0	;檢查炸彈是否已經爆炸(用於刪除)
 
 enemy1_x DD area_width-100;,area_width-500	;敵人1初始位置
@@ -271,7 +272,7 @@ local up, left, down, right, finish
 endm
 
 press_button macro x,y,button_x,button_y, diff_x, diff_y	;檢查方向按鈕按下情況的巨集
-local button_fail, bomb_case, defeat, to_next
+local button_fail, bomb_case, defeat, to_next, get_tool1, road
 	mov eax, x
 	cmp eax, button_x
 	jl button_fail
@@ -295,6 +296,10 @@ local button_fail, bomb_case, defeat, to_next
 	cmp dword ptr [eax], 000FF00h
 	je to_next
 
+	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y	;遇到道具1
+	cmp dword ptr [eax], 0FFFF00h
+	je get_tool1
+
 	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y
 	cmp dword ptr [eax], 0FFFFFFh
 	jne button_fail
@@ -302,7 +307,8 @@ local button_fail, bomb_case, defeat, to_next
 	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y
 	cmp dword ptr [eax], 0h
 	je bomb_case
-	
+
+	road:
 	draw_square bomberman_x, bomberman_y, 0FFFFFFh
 	bomb_case:
 	add bomberman_y, diff_y
@@ -312,10 +318,15 @@ local button_fail, bomb_case, defeat, to_next
 	
 	defeat:
 	game_over
+	jmp button_fail
 	
 	to_next:
 	next_level
+	jmp button_fail
 
+	get_tool1:
+		tool1
+		jmp road
 	button_fail:
 endm
 
@@ -356,7 +367,11 @@ calculate_pozition macro x,y,diff_x,diff_y		;根據座標計算位置的巨集
 	add eax, area
 endm
 
-next_level macro                ;切換下一關的巨集
+tool1 macro                ;獲得道具1的巨集
+    inc bombrange
+endm
+
+next_level macro            ;切換下一關的巨集
     mov enemy1_alive,0
     mov enemy2_alive,0
     mov bomb_check,0 
@@ -409,7 +424,7 @@ game_over macro				;遊戲結束的巨集
 endm
 
 explosion_radius macro x, y, diff_x, diff_y, color        ;受爆炸影響的區域的巨集
-local unbreakable, explosion_loop, breakable, crate, defeat, enemy1, enemy2, open_door
+local unbreakable, explosion_loop, breakable, crate, defeat, enemy1, enemy2, open_door, take_tool1
     mov ESI, bomb_x
     mov aux1, ESI
     mov ESI, bomb_y
@@ -429,6 +444,8 @@ local unbreakable, explosion_loop, breakable, crate, defeat, enemy1, enemy2, ope
     je crate
 	cmp dword ptr [eax], 0A0522Eh    ;磚(有門)
     je open_door
+	cmp dword ptr [eax], 0A0522Ch    ;磚(有道具1)
+    je take_tool1
     cmp dword ptr [eax], 0F59B00h    ;爆炸
     je breakable
     cmp dword ptr [eax], 0FFFFFFh    ;路
@@ -438,8 +455,15 @@ local unbreakable, explosion_loop, breakable, crate, defeat, enemy1, enemy2, ope
     add y, diff_y
     draw_square x, y, color
     inc aux
-    cmp aux, 4
+	mov edx, bombrange
+    cmp aux, edx
     jne explosion_loop
+    jmp unbreakable
+
+	take_tool1:
+	add x, diff_x
+    add y, diff_y
+    draw_square x, y, 0FFFF00h
     jmp unbreakable
 
     defeat:
@@ -449,9 +473,6 @@ local unbreakable, explosion_loop, breakable, crate, defeat, enemy1, enemy2, ope
     crate:
     add x, diff_x
     add y, diff_y
-    ;random_door_seed
-    ;cmp door_seed, 0
-    ;je open_door
     draw_square x, y, 0FFFFFFh
     jmp unbreakable
 
