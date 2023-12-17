@@ -41,12 +41,18 @@ arg2 EQU 12						; arg2 - 指向像素向量的指針
 arg3 EQU 16						; arg3 - pos_x
 arg4 EQU 20						; arg4 - pos_y
 
+image_width EQU 40
+image_height EQU 40
+
 symbol_width EQU 10
 symbol_height EQU 20
+
 include digits.inc
 include letters.inc
 include bomber_man_map.inc
 include picture.inc
+include image.inc
+
 button_up_x EQU area_width - 100	;上按鈕位置
 button_up_y EQU area_height - 150
 
@@ -182,6 +188,79 @@ make_done:
 	ret
 make_text endp
 
+make_image proc ; 畫尼哥圖
+	push ebp
+	mov ebp, esp
+	pusha
+	
+	mov eax, [ebp+arg1]
+	cmp eax, 'i'
+	jg draw_big_image
+	sub eax, 'a'
+	lea esi, image
+	jmp draw_image
+draw_image:
+	mov ebx, image_width
+	mul ebx
+	mov ebx, image_height
+	mul ebx
+	add esi, eax
+	mov ecx, image_height
+	jmp cycle_image_col
+draw_big_image:
+	
+cycle_image_col:
+	mov edi, [ebp+arg2] ;指向像素數組的指針
+	mov eax, [ebp+arg4] ;指向 y 座標的指針
+	add eax, image_height
+	sub eax, ecx
+	mov ebx, area_width														
+	mul ebx
+	add eax, [ebp+arg3] ;指向 x 座標的指針
+	shl eax, 2			;乘以 4，每個像素有一個 DWORD
+	add edi, eax
+	push ecx
+	mov ecx, image_width
+cycle_image_row:
+	cmp byte ptr [esi], 0
+	je image_red
+	cmp byte ptr [esi], 2
+	je image_lightblue
+	cmp byte ptr [esi], 3
+	je image_skincolor
+	cmp byte ptr [esi], 4
+	je image_white
+	cmp byte ptr [esi], 5
+	je image_pink
+	mov dword ptr [edi], 0
+	jmp image_pixel_next
+image_red:
+	mov dword ptr [edi], 0ff0000h
+	jmp image_pixel_next
+image_lightblue:
+	mov dword ptr [edi], 66FFFFh
+	jmp image_pixel_next
+image_skincolor:
+	mov dword ptr [edi], 0FFDD77h
+	jmp image_pixel_next
+image_white:
+	mov dword ptr [edi], 0ffffffh
+	jmp image_pixel_next
+image_pink:
+	mov dword ptr [edi], 0ff44cch
+	jmp image_pixel_next
+image_pixel_next:
+	inc esi
+	add edi, 4
+	loop cycle_image_row
+	pop ecx
+	loop cycle_image_col
+	popa
+	mov esp, ebp
+	pop ebp
+make_done:
+	ret
+make_image endp
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;macro
 make_text_macro macro symbol, drawArea, x, y	;整合呼叫繪製符號的巨集
@@ -190,6 +269,15 @@ make_text_macro macro symbol, drawArea, x, y	;整合呼叫繪製符號的巨集
 	push drawArea
 	push symbol
 	call make_text
+	add esp, 16
+endm
+
+make_image_macro macro image, drawArea, x, y
+	push y
+	push x
+	push drawArea
+	push image
+	call make_image
 	add esp, 16
 endm
 
@@ -472,12 +560,12 @@ local button_fail, bomb_case, defeat, to_next, get_tool1, road, get_tool2, cantp
 	add bomberman_x, diff_x
 	draw_square bomberman_x, bomberman_y, 0FF0000h
 	mov eax, bomberman_x
-	add eax, 2
+	add eax, 5
 	mov aux, eax
 	mov eax, bomberman_y
-	add eax, 2
+	add eax, 5
 	mov aux1, eax
-	make_text_macro 'A',area, aux, aux1
+	make_image_macro "b", area, aux, aux1
 
 	jmp button_fail
 	
@@ -1796,6 +1884,13 @@ draw proc
 	
 	;放置玩家和敵人
 	draw_square 50, 50, 0FF0000h
+	mov eax, bomberman_x
+	add eax, 5
+	mov aux, eax
+	mov eax, bomberman_y
+	add eax, 5
+	mov aux1, eax
+	make_image_macro "b", area, aux, aux1
 
 	;初始化方向按鈕的區域
 	draw_square area_width-100, area_height-100, 0A7A6A5h 
