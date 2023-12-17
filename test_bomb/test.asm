@@ -64,7 +64,6 @@ bomb_x DD 0				;炸彈位置
 bomb_y DD 0	
 explosion_check DD 0	;檢查炸彈是否已經爆炸(用於刪除)
 
-;enemy_num DD 2								;敵人總數
 enemy1_x DD area_width-100;,area_width-500	;敵人1初始位置
 enemy1_y DD area_height-200;,area_width-500
 enemy1_alive DD 1, 1						;檢查敵人1是否還活著
@@ -164,17 +163,17 @@ line_horizontal macro x, y, len, color	;畫一條水平線的巨集
 local loop_line
 	push eax
 	push ebx
-	mov eax, y; EAX = y
+	mov eax, y; eax = y
 	mov ebx, area_width
-	mul ebx; EAX = y*area_width
-	add EAX, x; EAX = y*area_width+x
-	shl eax, 2; EAX = (y*area_width+x)*4
-	add EAX, area
+	mul ebx; eax = y*area_width
+	add eax, x; eax = y*area_width+x
+	shl eax, 2; eax = (y*area_width+x)*4
+	add eax, area
 	
-	mov ECX, len
+	mov ecx, len
 loop_line:
 	mov dword ptr [eax], color
-	add EAX,4
+	add eax,4
 loop loop_line
 pop ebx
 pop eax
@@ -184,17 +183,17 @@ line_vertical macro x, y, len, color	;畫一條垂直線的巨集
 local loop_line
 	push eax
 	push ebx
-	mov eax, y; EAX = y
+	mov eax, y; eax = y
 	mov ebx, area_width
-	mul ebx; EAX = y*area_width
-	add EAX, x; EAX = y*area_width+x
-	shl eax, 2; EAX = (y*area_width+x)*4
-	add EAX, area
+	mul ebx; eax = y*area_width
+	add eax, x; eax = y*area_width+x
+	shl eax, 2; eax = (y*area_width+x)*4
+	add eax, area
 	
-	mov ECX, len
+	mov ecx, len
 loop_line:
 	mov dword ptr [eax], color
-	add EAX,area_width*4
+	add eax,area_width*4
 loop loop_line
 pop ebx
 pop eax
@@ -272,32 +271,36 @@ local up, left, down, right, finish
 endm
 
 press_button macro x,y,button_x,button_y, diff_x, diff_y	;檢查方向按鈕按下情況的巨集
-local button_fail, bomb_case, defeat
-	mov EAX, x
-	cmp EAX, button_x
+local button_fail, bomb_case, defeat, to_next
+	mov eax, x
+	cmp eax, button_x
 	jl button_fail
-	cmp EAX, button_x+50
+	cmp eax, button_x+50
 	jg button_fail
-	mov EAX, y
-	cmp EAX, button_y
+	mov eax, y
+	cmp eax, button_y
 	jl button_fail
-	cmp EAX, button_y+50
+	cmp eax, button_y+50
 	jg button_fail
 	
 	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y	;遇到敵人1
-	cmp dword ptr [EAX], 0FF69B4h
+	cmp dword ptr [eax], 0FF69B4h
 	je defeat
 	
 	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y	;遇到敵人2
-	cmp dword ptr [EAX], 00069B4h
+	cmp dword ptr [eax], 00069B4h
 	je defeat
 
+	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y	;遇到門
+	cmp dword ptr [eax], 000FF00h
+	je to_next
+
 	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y
-	cmp dword ptr [EAX], 0FFFFFFh
+	cmp dword ptr [eax], 0FFFFFFh
 	jne button_fail
 	
 	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y
-	cmp dword ptr [EAX], 0h
+	cmp dword ptr [eax], 0h
 	je bomb_case
 	
 	draw_square bomberman_x, bomberman_y, 0FFFFFFh
@@ -310,20 +313,23 @@ local button_fail, bomb_case, defeat
 	defeat:
 	game_over
 	
+	to_next:
+	next_level
+
 	button_fail:
 endm
 
 press_button_bomb macro x,y		;驗證按下炸彈按鈕的巨集
 local button_fail
-	mov EAX, x
-	cmp EAX, button_bomb_x
+	mov eax, x
+	cmp eax, button_bomb_x
 	jl button_fail
-	cmp EAX, button_bomb_x+50
+	cmp eax, button_bomb_x+50
 	jg button_fail
-	mov EAX, y
-	cmp EAX, button_bomb_y
+	mov eax, y
+	cmp eax, button_bomb_y
 	jl button_fail
-	cmp EAX, button_bomb_y+50
+	cmp eax, button_bomb_y+50
 	jg button_fail
 	
 	cmp bomb_check, 0
@@ -331,23 +337,48 @@ local button_fail
 	
 	draw_square bomberman_x, bomberman_y, 0h
 	mov bomb_check,1 
-	mov EAX, bomberman_x
-	mov bomb_x, EAX
-	mov EAX, bomberman_y
-	mov bomb_y, EAX
+	mov eax, bomberman_x
+	mov bomb_x, eax
+	mov eax, bomberman_y
+	mov bomb_y, eax
 	
 	button_fail:
 endm
 
 calculate_pozition macro x,y,diff_x,diff_y		;根據座標計算位置的巨集
-	mov EAX, y; EAX = y
-	add EAX, diff_y
-	mov EBX, area_width
-	mul EBX; EAX = y*area_width 
-	add EAX, x; EAX = y*area_width+x
-	add EAX, diff_x
-	shl EAX, 2; EAX = (y*area_width+x)*4
-	add EAX, area
+	mov eax, y; eax = y
+	add eax, diff_y
+	mov ebx, area_width
+	mul ebx; eax = y*area_width 
+	add eax, x; eax = y*area_width+x
+	add eax, diff_x
+	shl eax, 2; eax = (y*area_width+x)*4
+	add eax, area
+endm
+
+next_level macro                ;切換下一關的巨集
+    mov enemy1_alive,0
+    mov enemy2_alive,0
+    mov bomb_check,0 
+
+    ; 清空當前地圖
+    mov eax, area_width
+    mov ebx, area_height
+    mul ebx
+    shl eax, 2
+    push eax
+    push 0A7A6A5h            ;整個地圖塗成灰色
+    push area
+    call memset
+    add esp, 12
+
+    ; 在這裡添加生成下一關地圖的代碼
+	inc counterMap
+    call draw
+
+    ; 更新遊戲狀態，表示下一關開始
+    mov game_over_check, 0   ; 這裡將遊戲狀態設置為未結束
+
 endm
 
 game_over macro				;遊戲結束的巨集
@@ -388,19 +419,19 @@ local unbreakable, explosion_loop, breakable, crate, defeat, enemy1, enemy2, ope
     ;根據顏色執行不同的操作
     explosion_loop:
     calculate_pozition x,y, diff_x, diff_y
-    cmp dword ptr [EAX], 0FF69B4h    ;敵人1
+    cmp dword ptr [eax], 0FF69B4h    ;敵人1
     je enemy1
-    cmp dword ptr [EAX], 00069B4h    ;敵人2
+    cmp dword ptr [eax], 00069B4h    ;敵人2
     je enemy2
-    cmp dword ptr [EAX], 0FF0000h    ;玩家
+    cmp dword ptr [eax], 0FF0000h    ;玩家
     je defeat
-    cmp dword ptr [EAX], 0A0522Dh    ;磚
+    cmp dword ptr [eax], 0A0522Dh    ;磚
     je crate
-	cmp dword ptr [EAX], 0A0522Eh    ;磚(有門)
+	cmp dword ptr [eax], 0A0522Eh    ;磚(有門)
     je open_door
-    cmp dword ptr [EAX], 0F59B00h    ;爆炸
+    cmp dword ptr [eax], 0F59B00h    ;爆炸
     je breakable
-    cmp dword ptr [EAX], 0FFFFFFh    ;路
+    cmp dword ptr [eax], 0FFFFFFh    ;路
     jne unbreakable
     breakable:
     add x, diff_x
@@ -460,11 +491,11 @@ local no_defeat, finish
 	explosion_radius x, y, 0, -50, color
 	explosion_radius x, y, 0, 50, color
 	
-	mov EAX, bomberman_x
-	cmp bomb_x, EAX
+	mov eax, bomberman_x
+	cmp bomb_x, eax
 	jne no_defeat
-	mov EAX, bomberman_y
-	cmp bomb_y, EAX
+	mov eax, bomberman_y
+	cmp bomb_y, eax
 	jne no_defeat
 	game_over
 	jmp finish
@@ -487,7 +518,7 @@ bomb_mechanism macro		;決定炸彈操作的巨集
 	
 	;按下按鈕
 	calculate_pozition bomb_x,bomb_y, 0, 0
-	cmp dword ptr [EAX], 0h
+	cmp dword ptr [eax], 0h
 	jne black
 	draw_square bomb_x, bomb_y, 0F59B00h
 	jmp off
@@ -523,19 +554,19 @@ bomb_mechanism macro		;決定炸彈操作的巨集
 endm
 
 create_map macro		;製作地圖的巨集
-local done, m0, m1, m2, m3, loop_, done, wall, crate, road, door
+local done, loop_, wall, crate, road, door, tool, enemy1, enemy2, next
 random
 ;磚的位置不能同時為100倍(以及50,50、50,100、100,50不要有)
 	push ebp
 	mov ebp, esp
 	pusha
 	
-	mov EDX, [ebp+arg1] ;將傳入參數 arg1 的值（即要顯示的字符）載入寄存器 edx 中。
+	mov edx, [ebp+arg1] ;將傳入參數 arg1 的值（即要顯示的字符）載入寄存器 edx 中。
 	lea ESI, bomber_man_map
-	mov EAX, counterMap
-	mov EBX, 361
-	mul EBX
-	add ESI, EAX
+	mov eax, counterMap
+	mov ebx, 361
+	mul ebx
+	add ESI, eax
 
 	loop_:
 	cmp byte ptr [esi],0
@@ -546,6 +577,12 @@ random
 	je crate
 	cmp byte ptr [esi],3
 	je road
+	cmp byte ptr [esi],4
+	je tool
+	cmp byte ptr [esi],5
+	je enemy1
+	cmp byte ptr [esi],6
+	je enemy2
 
 	door:
 	draw_square map_x, map_y, 0A0522Eh
@@ -562,6 +599,26 @@ random
 	road:
 	draw_square map_x, map_y, 0FFFFFFh
 	jmp next
+	
+	tool:
+	draw_square map_x, map_y, 0A0522Ch
+	jmp next
+	
+	enemy1:
+	mov eax,map_x
+	mov enemy1_x, eax
+	mov eax,map_y
+	mov enemy1_y, eax
+	draw_square map_x, map_y, 0FF69B4h
+	jmp next
+	
+	enemy2:
+	mov eax,map_x
+	mov enemy2_x, eax
+	mov eax,map_y
+	mov enemy2_y, eax
+	draw_square map_x, map_y, 00069B4h
+	jmp next
 
 	next:
 	add esi, 1
@@ -573,69 +630,9 @@ random
 	je done
 	mov map_x, 0
 	jmp loop_
-	
-m0:
-	cmp edx, 0
-	jne m1
-	;磚的位置(暫時固定)
-	draw_square 150, 500, 0A0522Dh
-	draw_square 250, 200, 0A0522Dh
-	draw_square 200, 250, 0A0522Dh
-	draw_square 500, 350, 0A0522Dh
-	draw_square 350, 50, 0A0522Dh
-	draw_square 400, 650, 0A0522Dh
-	draw_square 700, 650, 0A0522Dh
-	draw_square 500, 650, 0A0522Dh
-	draw_square 500, 850, 0A0522Dh
-	draw_square 700, 250, 0A0522Dh
-	draw_square 100, 450, 0A0522Dh
-	jmp done
-m1:
-	cmp edx, 1
-	jne m2
-	;磚的位置(暫時固定)
-	draw_square 150, 500, 0A0522Dh
-	draw_square 250, 200, 0A0522Dh
-	draw_square 200, 250, 0A0522Dh
-	draw_square 500, 350, 0A0522Dh
-	draw_square 350, 50, 0A0522Dh
-	draw_square 400, 650, 0A0522Dh
-	draw_square 700, 650, 0A0522Dh
-	draw_square 500, 650, 0A0522Dh
-	draw_square 500, 850, 0A0522Dh
-	draw_square 700, 250, 0A0522Dh
-	draw_square 100, 450, 0A0522Dh
-	jmp done
-m2:
-	cmp edx, 2
-	jne m3
-	;磚的位置(暫時固定)
-	draw_square 50, 450, 0A0522Dh
-	draw_square 250, 250, 0A0522Dh
-	draw_square 250, 750, 0A0522Dh
-	draw_square 500, 350, 0A0522Dh
-	draw_square 350, 50, 0A0522Dh
-	draw_square 400, 650, 0A0522Dh
-	draw_square 700, 650, 0A0522Dh
-	draw_square 500, 650, 0A0522Dh
-	draw_square 500, 850, 0A0522Dh
-	draw_square 700, 250, 0A0522Dh
-	draw_square 100, 450, 0A0522Dh
-	jmp done
-m3:
-	;磚的位置(暫時固定)
-	draw_square 150, 500, 0A0522Dh
-	draw_square 250, 200, 0A0522Dh
-	draw_square 200, 250, 0A0522Dh
-	draw_square 500, 350, 0A0522Dh
-	draw_square 350, 50, 0A0522Dh
-	draw_square 400, 650, 0A0522Dh
-	draw_square 700, 650, 0A0522Dh
-	draw_square 500, 650, 0A0522Dh
-	draw_square 500, 850, 0A0522Dh
-	draw_square 700, 250, 0A0522Dh
-	draw_square 100, 450, 0A0522Dh
 done:
+	mov bomberman_x, 50
+	mov bomberman_y, 50
 	mov map_x, 0
 	mov map_y, 0
 	mov esp, ebp
@@ -647,20 +644,20 @@ random_door_seed macro	;決定隨機值 (0-1) 的巨集
 	push ebx
 	push ecx
 	push edx
-	mov EAX, random_aux
+	mov eax, random_aux
 	mul bomberman_y
-	add EAX, bomberman_x
+	add eax, bomberman_x
 	mov aux1,773	
-	mov EDX, 0
+	mov edx, 0
 	div aux1
-	mov random_aux, EDX
+	mov random_aux, edx
 	
-	mov EAX, random_aux
-	mov EBX,2
-	mov EDX,0
-	div EBX
+	mov eax, random_aux
+	mov ebx,2
+	mov edx,0
+	div ebx
 	mov door_seed, edx
-	;更改EDX
+	;更改edx
 	pop edx
 	pop ecx
 	pop ebx
@@ -668,19 +665,19 @@ random_door_seed macro	;決定隨機值 (0-1) 的巨集
 endm
 
 random macro			;決定隨機值 (0-3) 的巨集
-	mov EAX, random_aux
+	mov eax, random_aux
 	mul bomberman_y
-	add EAX, bomberman_x
+	add eax, bomberman_x
 	mov aux1,773	
-	mov EDX, 0
+	mov edx, 0
 	div aux1
-	mov random_aux, EDX
+	mov random_aux, edx
 	
-	mov EAX, random_aux
-	mov EBX,4
-	mov EDX,0
-	div EBX
-	;更改EDX
+	mov eax, random_aux
+	mov ebx,4
+	mov edx,0
+	div ebx
+	;更改edx
 endm
 
 enemy1_movement macro		;決定敵人1行動的巨集
@@ -692,13 +689,13 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	reroll:	
 	random
 	
-	cmp EDX,0
+	cmp edx,0
 	je up
-	cmp EDX, 1
+	cmp edx, 1
 	je left
-	cmp EDX, 2
+	cmp edx, 2
 	je down
-	cmp EDX, 3
+	cmp edx, 3
 	je right
 	
 	up:
@@ -724,20 +721,20 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	skip:
 	mov counterEnemy1,0
 	calculate_pozition enemy1_x,enemy1_y,aux, aux1
-	cmp dword ptr [EAX], 0FF0000h
+	cmp dword ptr [eax], 0FF0000h
 	je defeat
 	
 	calculate_pozition enemy1_x,enemy1_y,aux,aux1
-	cmp dword ptr [EAX], 0FFFFFFh
+	cmp dword ptr [eax], 0FFFFFFh
 	jne reroll
 	
 	reset:
 	draw_square enemy1_x, enemy1_y, 0FFFFFFh
 	
-	mov EAX, aux
-	add enemy1_x, EAX
-	mov EAX, aux1
-	add enemy1_y, EAX
+	mov eax, aux
+	add enemy1_x, eax
+	mov eax, aux1
+	add enemy1_y, eax
 	draw_square enemy1_x, enemy1_y, 0FF69B4h
 	jmp no_movement
 	
@@ -757,13 +754,13 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	reroll:	
 	random
 	
-	cmp EDX, 0
+	cmp edx, 0
 	je up
-	cmp EDX, 1
+	cmp edx, 1
 	je left
-	cmp EDX, 2
+	cmp edx, 2
 	je down
-	cmp EDX, 3
+	cmp edx, 3
 	je right
 	
 	up:
@@ -789,20 +786,20 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	skip:
 	mov counterEnemy2,0
 	calculate_pozition enemy2_x,enemy2_y,aux, aux1
-	cmp dword ptr [EAX], 0FF0000h
+	cmp dword ptr [eax], 0FF0000h
 	je defeat
 	
 	calculate_pozition enemy2_x,enemy2_y,aux,aux1
-	cmp dword ptr [EAX], 0FFFFFFh
+	cmp dword ptr [eax], 0FFFFFFh
 	jne reroll
 	
 	reset:
 	draw_square enemy2_x, enemy2_y, 0FFFFFFh
 	
-	mov EAX, aux
-	add enemy2_x, EAX
-	mov EAX, aux1
-	add enemy2_y, EAX
+	mov eax, aux
+	add enemy2_x, eax
+	mov eax, aux1
+	add enemy2_y, eax
 	draw_square enemy2_x, enemy2_y, 00069B4h
 	jmp no_movement
 	
@@ -884,12 +881,10 @@ draw proc
 	
 	;初始化地圖
 	create_map
-
+	
 	;放置玩家和敵人
 	draw_square 50, 50, 0FF0000h
-	draw_square area_width-100, area_height-200, 0FF69B4h
-	draw_square area_width-200, area_height-300, 00069B4h
-	
+
 	;初始化方向按鈕的區域
 	draw_square area_width-100, area_height-100, 0A7A6A5h 
 	draw_square area_width-100, area_height-150, 0A7A6A5h
@@ -934,6 +929,9 @@ evt_timer:
 	enemy1_movement
 
 	enemy2:
+	cmp enemy2_alive,1
+	jne final_draw
+	enemy2_movement
 	cmp enemy2_alive,1
 	jne final_draw
 	enemy2_movement
