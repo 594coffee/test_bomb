@@ -26,6 +26,8 @@ counterExplosion DD 0			;爆炸計時器初始為0
 counterEnemy1 DD 0				;敵人1計時器初始為0
 counterEnemy2 DD 0				;敵人2計時器初始為0
 counterMap DD 0					;地圖編號初始為0
+map_x DD 0
+map_y DD 0
 
 arg1 EQU 8						; arg1 - 要顯示的符號（字母或數字）
 arg2 EQU 12						; arg2 - 指向像素向量的指針
@@ -65,11 +67,11 @@ bomb_y DD 0
 explosion_check DD 0	;檢查炸彈是否已經爆炸(用於刪除)
 
 ;enemy_num DD 2								;敵人總數
-enemy1_x DD area_width-100,area_width-500	;敵人1初始位置
-enemy1_y DD area_height-200,area_width-500
+enemy1_x DD area_width-100;,area_width-500	;敵人1初始位置
+enemy1_y DD area_height-200;,area_width-500
 enemy1_alive DD 1, 1						;檢查敵人1是否還活著
-enemy2_x DD area_width-200,area_width-500	;敵人2初始位置
-enemy2_y DD area_height-300,area_width-500
+enemy2_x DD area_width-200;,area_width-500	;敵人2初始位置
+enemy2_y DD area_height-300;,area_width-500
 enemy2_alive DD 1, 1						;檢查敵人2是否還活著
 game_over_check DD 0						;檢查玩家是否輸了
 
@@ -481,6 +483,7 @@ local unbreakable, explosion_loop, breakable, crate, defeat, enemy1, enemy2
 	draw_square x, y, 0FFFFFFh
 	mov enemy1_alive,0
 	jmp unbreakable
+
 	enemy2:
 	add x, diff_x
 	add y, diff_y
@@ -567,9 +570,51 @@ bomb_mechanism macro		;決定炸彈操作的巨集
 endm
 
 create_map macro		;製作地圖的巨集
-local done, m0, m1, m2, m3
+local done, m0, m1, m2, m3, loop_, done, wall, crate, road
 random
-;磚的位置不能同時為100倍(以及最好50,50、50,100、100,50不要有)
+;磚的位置不能同時為100倍(以及50,50、50,100、100,50不要有)
+	push ebp
+	mov ebp, esp
+	pusha
+	
+	mov EDX, [ebp+arg1] ;將傳入參數 arg1 的值（即要顯示的字符）載入寄存器 edx 中。
+	lea ESI, bomber_man_map
+	mov EAX, counterMap
+	mov EBX, 361
+	mul EBX
+	add ESI, EAX
+
+	loop_:
+	cmp byte ptr [esi],1
+	je wall
+	cmp byte ptr [esi],2
+	je crate
+	cmp byte ptr [esi],3
+	je road
+
+	wall:
+	draw_square map_x, map_y, 0A7A6A5h
+	jmp next
+
+	crate:
+	draw_square map_x, map_y, 0A0522Dh
+	jmp next
+
+	road:
+	draw_square map_x, map_y, 0FFFFFFh
+	jmp next
+
+	next:
+	add esi, 1
+	add map_x, 50
+	cmp map_x, 950 
+	jne loop_
+	add map_y, 50
+	cmp map_y, 950
+	je done
+	mov map_x, 0
+	jmp loop_
+	
 m0:
 	cmp edx, 0
 	jne m1
@@ -632,6 +677,10 @@ m3:
 	draw_square 700, 250, 0A0522Dh
 	draw_square 100, 450, 0A0522Dh
 done:
+	mov map_x, 0
+	mov map_y, 0
+	mov esp, ebp
+	pop ebp
 endm
 
 random_map_seed macro
@@ -864,12 +913,12 @@ draw proc
 	jne right_border
 	
 	;初始化地圖
-	create_map 0
+	create_map
 
 	;放置玩家和敵人
 	draw_square 50, 50, 0FF0000h
 	draw_square area_width-100, area_height-200, 0FF69B4h
-	;draw_square area_width-200, area_height-200, 0FF69B4h
+	draw_square area_width-200, area_height-300, 00069B4h
 	
 	;初始化方向按鈕的區域
 	draw_square area_width-100, area_height-100, 0A7A6A5h 
