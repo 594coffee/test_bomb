@@ -26,6 +26,11 @@ counterExplosion DD 0			;爆炸計時器初始為0
 counterEnemy1 DD 0				;敵人1計時器初始為0
 counterEnemy2 DD 0				;敵人2計時器初始為0
 counterEnemy3 DD 0				;敵人3計時器初始為0
+counterEnemy4 DD 0				;敵人4計時器初始為0
+counterEnemy5 DD 0				;敵人5計時器初始為0
+counterEnemy6 DD 0				;敵人6計時器初始為0
+counterEnemy7 DD 0				;敵人7計時器初始為0
+counterEnemy8 DD 0				;敵人8計時器初始為0
 counterMap DD 0					;地圖編號初始為0
 map_x DD 0
 map_y DD 0
@@ -66,28 +71,43 @@ bomb_y DD 0
 bombrange DD 2
 explosion_check DD 0	;檢查炸彈是否已經爆炸(用於刪除)
 
-enemy1_x DD area_width-100;,area_width-500	;敵人1初始位置
-enemy1_y DD area_height-200;,area_width-500
-enemy1_alive DD 1, 1						;檢查敵人1是否還活著
-enemy2_x DD area_width-200;,area_width-500	;敵人2初始位置
-enemy2_y DD area_height-300;,area_width-500
-enemy2_alive DD 1, 1						;檢查敵人2是否還活著
-enemy3_x DD area_width-400;,area_width-500	;敵人3初始位置
-enemy3_y DD area_height-300;,area_width-500
-enemy3_alive DD 1, 1						;檢查敵人3是否還活著
+enemy1_x DD area_width-100;	;敵人1初始位置
+enemy1_y DD area_height-200
+enemy1_alive DD 0		;檢查敵人1是否還活著
+enemy2_x DD area_width-200	;敵人2初始位置
+enemy2_y DD area_height-300;
+enemy2_alive DD 0		;檢查敵人2是否還活著
+enemy3_x DD area_width-400	;敵人3初始位置
+enemy3_y DD area_height-300
+enemy3_alive DD 0		;檢查敵人3是否還活著
+enemy4_x DD area_width-400	;敵人4初始位置
+enemy4_y DD area_height-300
+enemy4_alive DD 0		;檢查敵人4是否還活著
+enemy5_x DD area_width-400	;敵人5初始位置
+enemy5_y DD area_height-300
+enemy5_alive DD 0		;檢查敵人5是否還活著
+enemy6_x DD area_width-400	;敵人6初始位置
+enemy6_y DD area_height-300
+enemy6_alive DD 0		;檢查敵人6是否還活著
+enemy7_x DD area_width-400	;敵人7初始位置
+enemy7_y DD area_height-300
+enemy7_alive DD 0		;檢查敵人7是否還活著
+enemy8_x DD area_width-400	;敵人8初始位置
+enemy8_y DD area_height-300
+enemy8_alive DD 0		;檢查敵人8是否還活著
 
-game_over_check DD 0						;檢查玩家是否輸了
-pass_wall DD 0                                ;檢查是否可以穿牆
-lastdoor DD 0                                ;儲存人物移動的上一個區塊顏色
-lastwall DD 0                                ;儲存人物移動的上一個區塊顏色
-lasttool1 DD 0                                ;儲存人物移動的上一個區塊顏色
-lasttool2 DD 0                                ;儲存人物移動的上一個區塊顏色
-lasttool3 DD 0                                ;儲存人物移動的上一個區塊顏色
-last DD 0                                ;儲存人物是否站在牆上
+game_over_check DD 0		;檢查玩家是否輸了
+pass_wall DD 0              ;檢查是否可以穿牆
+lastdoor DD 0               ;儲存人物移動的上一個區塊顏色
+lastwall DD 0               ;儲存人物移動的上一個區塊顏色
+lasttool1 DD 0              ;儲存人物移動的上一個區塊顏色
+lasttool2 DD 0              ;儲存人物移動的上一個區塊顏色
+lasttool3 DD 0              ;儲存人物移動的上一個區塊顏色
+last DD 0                   ;儲存人物是否站在牆上
 door_x DD 0
 door_y DD 0
 
-aux DD 0			;輔助變數
+aux DD 0	;輔助變數
 aux1 DD 0
 aux2 DD 0
 random_aux DD 371	
@@ -306,7 +326,27 @@ local button_fail, bomb_case, defeat, to_next, get_tool1, road, get_tool2, cantp
 	je defeat
 
 	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y	;遇到敵人3
-	cmp dword ptr [eax], 0AA69CCh
+	cmp dword ptr [eax], 0AA00CCh
+	je defeat
+
+	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y	;遇到敵人4
+	cmp dword ptr [eax], 0000001h
+	je defeat
+
+	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y	;遇到敵人5
+	cmp dword ptr [eax], 0000002h
+	je defeat
+
+	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y	;遇到敵人6
+	cmp dword ptr [eax], 0000003h
+	je defeat
+
+	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y	;遇到敵人7
+	cmp dword ptr [eax], 0000004h
+	je defeat
+
+	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y	;遇到敵人8
+	cmp dword ptr [eax], 0000005h
 	je defeat
 
 	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y	;遇到門
@@ -524,6 +564,11 @@ local has_next, nextend
     mov enemy1_alive,1
     mov enemy2_alive,1
 	mov enemy3_alive,1
+	mov enemy4_alive,1
+    mov enemy5_alive,1
+	mov enemy6_alive,1
+	mov enemy7_alive,1
+    mov enemy8_alive,1
     mov bomb_check,0 
 
     ; 清空當前地圖
@@ -552,6 +597,11 @@ win_game macro                ;遊戲獲勝的巨集
     mov enemy1_alive,0
     mov enemy2_alive,0
 	mov enemy3_alive,0
+	mov enemy4_alive,0
+    mov enemy5_alive,0
+	mov enemy6_alive,0
+	mov enemy7_alive,0
+    mov enemy8_alive,0
     mov bomb_check,0 
 
     mov eax, area_width
@@ -580,6 +630,11 @@ game_over macro				;遊戲結束的巨集
 	mov enemy1_alive,0
 	mov enemy2_alive,0
 	mov enemy3_alive,0
+	mov enemy4_alive,0
+    mov enemy5_alive,0
+	mov enemy6_alive,0
+	mov enemy7_alive,0
+    mov enemy8_alive,0
 	mov bomb_check,0 
 
 	mov eax, area_width
@@ -605,7 +660,7 @@ game_over macro				;遊戲結束的巨集
 endm
 
 explosion_radius macro x, y, diff_x, diff_y, color        ;受爆炸影響的區域的巨集
-local unbreakable, explosion_loop, clear_loop, breakable, crate, defeat, enemy1, enemy2, enemy3,open_door, take_tool1, take_tool2, take_tool3
+local space, unbreakable, explosion_loop, clear_loop, breakable, crate, defeat, enemy1, enemy2, enemy3, enemy4, enemy5, enemy6, enemy7, enemy8, open_door, take_tool1, take_tool2, take_tool3
     mov ESI, bomb_x
     mov aux1, ESI
     mov ESI, bomb_y
@@ -622,8 +677,18 @@ local unbreakable, explosion_loop, clear_loop, breakable, crate, defeat, enemy1,
     je enemy1
     cmp dword ptr [eax], 00069B4h    ;敵人2
     je enemy2
-	cmp dword ptr [eax], 0AA69CCh    ;敵人3
+	cmp dword ptr [eax], 0AA00CCh    ;敵人3
     je enemy3
+	cmp dword ptr [eax], 0AA00CCh    ;敵人4
+    je enemy4
+	cmp dword ptr [eax], 0AA00CCh    ;敵人5
+    je enemy5
+	cmp dword ptr [eax], 0AA00CCh    ;敵人6
+    je enemy6
+	cmp dword ptr [eax], 0AA00CCh    ;敵人7
+    je enemy7
+	cmp dword ptr [eax], 0AA00CCh    ;敵人8
+    je enemy8
     cmp dword ptr [eax], 0FF0000h    ;玩家
     je defeat
     cmp dword ptr [eax], 0A0522Dh    ;磚
@@ -674,10 +739,7 @@ local unbreakable, explosion_loop, clear_loop, breakable, crate, defeat, enemy1,
     jmp unbreakable
 
     crate:
-    add x, diff_x
-    add y, diff_y
-    draw_square x, y, 0FFFFFFh
-    jmp unbreakable
+    jmp space
 
     open_door:
 	add x, diff_x
@@ -686,24 +748,41 @@ local unbreakable, explosion_loop, clear_loop, breakable, crate, defeat, enemy1,
     jmp unbreakable
 
     enemy1:
-    add x, diff_x
-    add y, diff_y
-    draw_square x, y, 0FFFFFFh
     mov enemy1_alive,0
-    jmp unbreakable
+    jmp space
 
     enemy2:
-    add x, diff_x
-    add y, diff_y
-    draw_square x, y, 0FFFFFFh
     mov enemy2_alive,0
-	jmp unbreakable
+	jmp space
 
 	enemy3:
-    add x, diff_x
+    mov enemy3_alive,0
+	jmp space
+
+	enemy4:
+    mov enemy4_alive,0
+	jmp space
+
+	enemy5:
+    mov enemy5_alive,0
+	jmp space
+
+	enemy6:
+    mov enemy6_alive,0
+	jmp space
+
+	enemy7:
+    mov enemy7_alive,0
+	jmp space
+
+	enemy8:
+    mov enemy8_alive,0
+	jmp space
+
+	space:
+	add x, diff_x
     add y, diff_y
     draw_square x, y, 0FFFFFFh
-    mov enemy3_alive,0
 	jmp unbreakable
 
 	clear_loop:
@@ -808,13 +887,12 @@ local canbomb
 endm
 
 create_map macro		;製作地圖的巨集
-local done, loop_, wall, crate, road, door, tool1, tool2, tool3, enemy1, enemy2, enemy3, next
-random
+local done, loop_, wall, crate, road, door, tool1, tool2, tool3, enemy1, enemy2, enemy3, enemy4, enemy5, enemy6, enemy7, enemy8, next
 ;磚的位置不能同時為100倍(以及50,50、50,100、100,50不要有)
 	push ebp
 	mov ebp, esp
 	pusha
-	
+
 	mov edx, [ebp+arg1] ;將傳入參數 arg1 的值（即要顯示的字符）載入寄存器 edx 中。
 	lea ESI, bomber_man_map
 	mov eax, counterMap
@@ -843,6 +921,16 @@ random
 	je enemy2
 	cmp byte ptr [esi],9
 	je enemy3
+	cmp byte ptr [esi],10
+	je enemy4
+	cmp byte ptr [esi],11
+	je enemy5
+	cmp byte ptr [esi],12
+	je enemy6
+	cmp byte ptr [esi],13
+	je enemy7
+	cmp byte ptr [esi],14
+	je enemy8
 	
 
 	door:
@@ -878,6 +966,7 @@ random
 	jmp next
 
 	enemy1:
+	mov enemy1_alive, 1
 	mov eax,map_x
 	mov enemy1_x, eax
 	mov eax,map_y
@@ -886,6 +975,7 @@ random
 	jmp next
 	
 	enemy2:
+	mov enemy2_alive, 1
 	mov eax,map_x
 	mov enemy2_x, eax
 	mov eax,map_y
@@ -894,12 +984,59 @@ random
 	jmp next
 
 	enemy3:
+	mov enemy3_alive, 1
 	mov eax,map_x
 	mov enemy3_x, eax
 	mov eax,map_y
 	mov enemy3_y, eax
-	draw_square map_x, map_y, 0AA69CCh
+	draw_square map_x, map_y, 0AA00CCh
 	jmp next
+
+	enemy4:
+	mov enemy4_alive, 1
+	mov eax,map_x
+	mov enemy4_x, eax
+	mov eax,map_y
+	mov enemy4_y, eax
+	draw_square map_x, map_y, 0000001h
+	jmp next
+
+	enemy5:
+	mov enemy5_alive, 1
+	mov eax,map_x
+	mov enemy5_x, eax
+	mov eax,map_y
+	mov enemy5_y, eax
+	draw_square map_x, map_y, 0000002h
+	jmp next
+
+	enemy6:
+	mov enemy6_alive, 1
+	mov eax,map_x
+	mov enemy6_x, eax
+	mov eax,map_y
+	mov enemy6_y, eax
+	draw_square map_x, map_y, 0000003h
+	jmp next
+
+	enemy7:
+	mov enemy7_alive, 1
+	mov eax,map_x
+	mov enemy7_x, eax
+	mov eax,map_y
+	mov enemy7_y, eax
+	draw_square map_x, map_y, 0000004h
+	jmp next
+
+	enemy8:
+	mov enemy8_alive, 1
+	mov eax,map_x
+	mov enemy8_x, eax
+	mov eax,map_y
+	mov enemy8_y, eax
+	draw_square map_x, map_y, 0000005h
+	jmp next
+
 
 	next:
 	add esi, 1
@@ -945,7 +1082,7 @@ random_door_seed macro	;決定隨機值 (0-1) 的巨集
 	pop eax
 endm
 
-random macro			;決定隨機值 (0-3) 的巨集
+random macro			;決定隨機值 (0-4) 的巨集
 	mov eax, random_aux
 	mul bomberman_y
 	add eax, bomberman_x
@@ -955,7 +1092,7 @@ random macro			;決定隨機值 (0-3) 的巨集
 	mov random_aux, edx
 	
 	mov eax, random_aux
-	mov ebx,4
+	mov ebx,5
 	mov edx,0
 	div ebx
 	;更改edx
@@ -978,6 +1115,8 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	je down
 	cmp edx, 3
 	je right
+	cmp edx, 4
+	je skip
 	
 	up:
 	mov aux, 0
@@ -1009,7 +1148,6 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	calculate_pozition enemy1_x,enemy1_y,aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
 	jne up
-	jmp skip
 	
 	skip:
 	mov counterEnemy1, 0
@@ -1055,6 +1193,8 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	je down
 	cmp edx, 3
 	je right
+	cmp edx, 4
+	je skip
 	
 	up:
 	mov aux, 0
@@ -1086,7 +1226,6 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	calculate_pozition enemy2_x,enemy2_y,aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
 	jne up
-	jmp skip
 	
 	skip:
 	mov counterEnemy2,0
@@ -1132,6 +1271,8 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	je down
 	cmp edx, 3
 	je right
+	cmp edx, 4
+	je skip
 	
 	up:
 	mov aux, 0
@@ -1163,7 +1304,6 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	calculate_pozition enemy3_x,enemy3_y,aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
 	jne up
-	jmp skip
 	
 	skip:
 	mov counterEnemy3,0
@@ -1182,7 +1322,397 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	add enemy3_x, eax
 	mov eax, aux1
 	add enemy3_y, eax
-	draw_square enemy3_x, enemy3_y, 0AA69CCh
+	draw_square enemy3_x, enemy3_y, 0AA00CCh
+	jmp no_movement
+	
+	defeat:
+	game_over
+	
+	no_movement:
+	
+endm
+
+enemy4_movement macro		;決定敵人4行動的巨集
+local up,left,down,right, skip, defeat, reroll, no_movement, reset
+	inc counterEnemy4
+	cmp counterEnemy4, 5
+	jne no_movement
+	
+	reroll:	
+	random
+	
+	cmp edx, 0
+	je up
+	cmp edx, 1
+	je left
+	cmp edx, 2
+	je down
+	cmp edx, 3
+	je right
+	cmp edx, 4
+	je skip
+	
+	up:
+	mov aux, 0
+	mov aux1, -50
+	calculate_pozition enemy4_x,enemy4_y,aux, aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne left
+	jmp skip
+	
+	left:
+	mov aux, -50
+	mov aux1, 0
+	calculate_pozition enemy4_x,enemy4_y,aux, aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne right
+	jmp skip
+	
+	right:
+	mov aux, 50
+	mov aux1, 0
+	calculate_pozition enemy4_x,enemy4_y,aux, aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne down
+	jmp skip
+	
+	down:
+	mov aux, 0
+	mov aux1, 50
+	calculate_pozition enemy4_x,enemy4_y,aux, aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne up
+	
+	skip:
+	mov counterEnemy4,0
+	calculate_pozition enemy4_x,enemy4_y,aux, aux1
+	cmp dword ptr [eax], 0FF0000h
+	je defeat
+	
+	calculate_pozition enemy4_x,enemy4_y,aux,aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne reroll
+	
+	reset:
+	draw_square enemy4_x, enemy4_y, 0FFFFFFh
+	
+	mov eax, aux
+	add enemy4_x, eax
+	mov eax, aux1
+	add enemy4_y, eax
+	draw_square enemy4_x, enemy4_y, 0000001h
+	jmp no_movement
+	
+	defeat:
+	game_over
+	
+	no_movement:
+	
+endm
+
+enemy5_movement macro		;決定敵人5行動的巨集
+local up,left,down,right, skip, defeat, reroll, no_movement, reset
+	inc counterEnemy5
+	cmp counterEnemy5, 5
+	jne no_movement
+	
+	reroll:	
+	random
+	
+	cmp edx, 0
+	je up
+	cmp edx, 1
+	je left
+	cmp edx, 2
+	je down
+	cmp edx, 3
+	je right
+	cmp edx, 4
+	je skip
+	
+	up:
+	mov aux, 0
+	mov aux1, -50
+	calculate_pozition enemy5_x,enemy5_y,aux, aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne left
+	jmp skip
+	
+	left:
+	mov aux, -50
+	mov aux1, 0
+	calculate_pozition enemy5_x,enemy5_y,aux, aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne right
+	jmp skip
+	
+	right:
+	mov aux, 50
+	mov aux1, 0
+	calculate_pozition enemy5_x,enemy5_y,aux, aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne down
+	jmp skip
+	
+	down:
+	mov aux, 0
+	mov aux1, 50
+	calculate_pozition enemy5_x,enemy5_y,aux, aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne up
+	
+	skip:
+	mov counterEnemy5,0
+	calculate_pozition enemy5_x,enemy5_y,aux, aux1
+	cmp dword ptr [eax], 0FF0000h
+	je defeat
+	
+	calculate_pozition enemy5_x,enemy5_y,aux,aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne reroll
+	
+	reset:
+	draw_square enemy5_x, enemy5_y, 0FFFFFFh
+	
+	mov eax, aux
+	add enemy5_x, eax
+	mov eax, aux1
+	add enemy5_y, eax
+	draw_square enemy5_x, enemy5_y, 0000002h
+	jmp no_movement
+	
+	defeat:
+	game_over
+	
+	no_movement:
+	
+endm
+
+enemy6_movement macro		;決定敵人6行動的巨集
+local up,left,down,right, skip, defeat, reroll, no_movement, reset
+	inc counterEnemy6
+	cmp counterEnemy6, 5
+	jne no_movement
+	
+	reroll:	
+	random
+	
+	cmp edx, 0
+	je up
+	cmp edx, 1
+	je left
+	cmp edx, 2
+	je down
+	cmp edx, 3
+	je right
+	cmp edx, 4
+	je skip
+	
+	up:
+	mov aux, 0
+	mov aux1, -50
+	calculate_pozition enemy6_x,enemy6_y,aux, aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne left
+	jmp skip
+	
+	left:
+	mov aux, -50
+	mov aux1, 0
+	calculate_pozition enemy6_x,enemy6_y,aux, aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne right
+	jmp skip
+	
+	right:
+	mov aux, 50
+	mov aux1, 0
+	calculate_pozition enemy6_x,enemy6_y,aux, aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne down
+	jmp skip
+	
+	down:
+	mov aux, 0
+	mov aux1, 50
+	calculate_pozition enemy6_x,enemy6_y,aux, aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne up
+	
+	skip:
+	mov counterEnemy6,0
+	calculate_pozition enemy6_x,enemy6_y,aux, aux1
+	cmp dword ptr [eax], 0FF0000h
+	je defeat
+	
+	calculate_pozition enemy6_x,enemy6_y,aux,aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne reroll
+	
+	reset:
+	draw_square enemy6_x, enemy6_y, 0FFFFFFh
+	
+	mov eax, aux
+	add enemy6_x, eax
+	mov eax, aux1
+	add enemy6_y, eax
+	draw_square enemy6_x, enemy6_y, 0000003h
+	jmp no_movement
+	
+	defeat:
+	game_over
+	
+	no_movement:
+	
+endm
+
+enemy7_movement macro		;決定敵人7行動的巨集
+local up,left,down,right, skip, defeat, reroll, no_movement, reset
+	inc counterEnemy7
+	cmp counterEnemy7, 5
+	jne no_movement
+	
+	reroll:	
+	random
+	
+	cmp edx, 0
+	je up
+	cmp edx, 1
+	je left
+	cmp edx, 2
+	je down
+	cmp edx, 3
+	je right
+	cmp edx, 4
+	je skip
+	
+	up:
+	mov aux, 0
+	mov aux1, -50
+	calculate_pozition enemy7_x,enemy7_y,aux, aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne left
+	jmp skip
+	
+	left:
+	mov aux, -50
+	mov aux1, 0
+	calculate_pozition enemy7_x,enemy7_y,aux, aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne right
+	jmp skip
+	
+	right:
+	mov aux, 50
+	mov aux1, 0
+	calculate_pozition enemy7_x,enemy7_y,aux, aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne down
+	jmp skip
+	
+	down:
+	mov aux, 0
+	mov aux1, 50
+	calculate_pozition enemy7_x,enemy7_y,aux, aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne up
+	
+	skip:
+	mov counterEnemy7,0
+	calculate_pozition enemy7_x,enemy7_y,aux, aux1
+	cmp dword ptr [eax], 0FF0000h
+	je defeat
+	
+	calculate_pozition enemy7_x,enemy7_y,aux,aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne reroll
+	
+	reset:
+	draw_square enemy7_x, enemy7_y, 0FFFFFFh
+	
+	mov eax, aux
+	add enemy7_x, eax
+	mov eax, aux1
+	add enemy7_y, eax
+	draw_square enemy7_x, enemy7_y, 0000004h
+	jmp no_movement
+	
+	defeat:
+	game_over
+	
+	no_movement:
+	
+endm
+
+enemy8_movement macro		;決定敵人8行動的巨集
+local up,left,down,right, skip, defeat, reroll, no_movement, reset
+	inc counterEnemy8
+	cmp counterEnemy8, 5
+	jne no_movement
+	
+	reroll:	
+	random
+	
+	cmp edx, 0
+	je up
+	cmp edx, 1
+	je left
+	cmp edx, 2
+	je down
+	cmp edx, 3
+	je right
+	cmp edx, 4
+	je skip
+	
+	up:
+	mov aux, 0
+	mov aux1, -50
+	calculate_pozition enemy8_x,enemy8_y,aux, aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne left
+	jmp skip
+	
+	left:
+	mov aux, -50
+	mov aux1, 0
+	calculate_pozition enemy8_x,enemy8_y,aux, aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne right
+	jmp skip
+	
+	right:
+	mov aux, 50
+	mov aux1, 0
+	calculate_pozition enemy8_x,enemy8_y,aux, aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne down
+	jmp skip
+	
+	down:
+	mov aux, 0
+	mov aux1, 50
+	calculate_pozition enemy8_x,enemy8_y,aux, aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne up
+	
+	skip:
+	mov counterEnemy8,0
+	calculate_pozition enemy8_x,enemy8_y,aux, aux1
+	cmp dword ptr [eax], 0FF0000h
+	je defeat
+	
+	calculate_pozition enemy8_x,enemy8_y,aux,aux1
+	cmp dword ptr [eax], 0FFFFFFh
+	jne reroll
+	
+	reset:
+	draw_square enemy8_x, enemy8_y, 0FFFFFFh
+	
+	mov eax, aux
+	add enemy8_x, eax
+	mov eax, aux1
+	add enemy8_y, eax
+	draw_square enemy8_x, enemy8_y, 0000005h
 	jmp no_movement
 	
 	defeat:
@@ -1312,20 +1842,42 @@ evt_timer:
 
 	enemy2:
 	cmp enemy2_alive,1
-	jne final_draw
+	jne enemy3
 	enemy2_movement
 	cmp enemy2_alive,1
-	jne final_draw
+	jne enemy3
 	enemy2_movement
-	jmp final_draw
-
+	jmp enemy3
+	
 	enemy3:
 	cmp enemy3_alive,1
-	jne final_draw
+	jne enemy4
 	enemy3_movement
-	cmp enemy3_alive,1
+
+	enemy4:
+	cmp enemy4_alive,1
+	jne enemy5
+	enemy4_movement
+
+	enemy5:
+	cmp enemy5_alive,1
+	jne enemy6
+	enemy5_movement
+
+	enemy6:
+	cmp enemy6_alive,1
+	jne enemy7
+	enemy6_movement
+
+	enemy7:
+	cmp enemy7_alive,1
+	jne enemy8
+	enemy7_movement
+
+	enemy8:
+	cmp enemy8_alive,1
 	jne final_draw
-	enemy3_movement
+	enemy8_movement
 	jmp final_draw
 
 	final_draw:
