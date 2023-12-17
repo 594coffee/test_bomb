@@ -31,7 +31,7 @@ counterEnemy5 DD 0				;敵人5計時器初始為0
 counterEnemy6 DD 0				;敵人6計時器初始為0
 counterEnemy7 DD 0				;敵人7計時器初始為0
 counterEnemy8 DD 0				;敵人8計時器初始為0
-counterMap DD 0					;地圖編號初始為0
+counterMap DD 0				;地圖編號初始為0
 map_x DD 0
 map_y DD 0
 door_seed DD 0
@@ -121,6 +121,57 @@ random_aux DD 371
 ;code
 .code
 ;make_text 程式在給定座標處顯示字母或數字
+make_color proc
+	cmp byte ptr [esi], 0
+	je image_red
+	cmp byte ptr [esi], 2
+	je image_lightblue
+	cmp byte ptr [esi], 3
+	je image_skincolor
+	cmp byte ptr [esi], 4
+	je image_white
+	cmp byte ptr [esi], 5
+	je image_pink
+	cmp byte ptr [esi], 6
+	je image_enemy1color
+	cmp byte ptr [esi], 7
+	je image_yellow
+	cmp byte ptr [esi], 8
+	je image_tool1color
+	cmp byte ptr [esi], 9
+	je image_gray
+	mov dword ptr [edi], 0
+	jmp color_end
+	image_gray:
+		mov dword ptr [edi], 0A7A6A5h
+		jmp color_end	
+	image_tool1color:
+		mov dword ptr [edi], 0A0522Ch
+		jmp color_end
+	image_yellow:
+		mov dword ptr [edi], 0ffdd33h
+		jmp color_end
+	image_red:
+		mov dword ptr [edi], 0ff0000h
+		jmp color_end
+	image_lightblue:
+		mov dword ptr [edi], 66FFFFh
+		jmp color_end
+	image_skincolor:
+		mov dword ptr [edi], 0FFDD77h
+		jmp color_end
+	image_white:
+		mov dword ptr [edi], 0ffffffh
+		jmp color_end
+	image_pink:
+		mov dword ptr [edi], 0ff44cch
+		jmp color_end
+	image_enemy1color:
+		mov dword ptr [edi], 0FF69B4h
+		jmp color_end
+	color_end:
+		ret
+make_color endp
 make_text proc
 	push ebp
 	mov ebp, esp
@@ -222,33 +273,7 @@ cycle_image_col:
 	push ecx
 	mov ecx, image_width
 cycle_image_row:
-	cmp byte ptr [esi], 0
-	je image_red
-	cmp byte ptr [esi], 2
-	je image_lightblue
-	cmp byte ptr [esi], 3
-	je image_skincolor
-	cmp byte ptr [esi], 4
-	je image_white
-	cmp byte ptr [esi], 5
-	je image_pink
-	mov dword ptr [edi], 0
-	jmp image_pixel_next
-image_red:
-	mov dword ptr [edi], 0ff0000h
-	jmp image_pixel_next
-image_lightblue:
-	mov dword ptr [edi], 66FFFFh
-	jmp image_pixel_next
-image_skincolor:
-	mov dword ptr [edi], 0FFDD77h
-	jmp image_pixel_next
-image_white:
-	mov dword ptr [edi], 0ffffffh
-	jmp image_pixel_next
-image_pink:
-	mov dword ptr [edi], 0ff44cch
-	jmp image_pixel_next
+	call make_color
 image_pixel_next:
 	inc esi
 	add edi, 4
@@ -565,7 +590,7 @@ local button_fail, bomb_case, defeat, to_next, get_tool1, road, get_tool2, cantp
 	mov eax, bomberman_y
 	add eax, 5
 	mov aux1, eax
-	make_image_macro "b", area, aux, aux1
+	make_image_macro "a", area, aux, aux1
 
 	jmp button_fail
 	
@@ -745,11 +770,11 @@ local space, unbreakable, explosion_loop, clear_loop, breakable, crate, defeat, 
     mov aux1, ESI
     mov ESI, bomb_y
     mov aux2, ESI
-
+	mov aux, 0
 	mov ecx, color
 	cmp ecx, 0FFFFFFh
 	je clear_loop
-    mov aux, 0
+    
     ;根據顏色執行不同的操作
     explosion_loop:
     calculate_pozition x,y, diff_x, diff_y
@@ -1052,6 +1077,13 @@ local done, loop_, wall, crate, road, door, tool1, tool2, tool3, enemy1, enemy2,
 	mov eax,map_y
 	mov enemy1_y, eax
 	draw_square map_x, map_y, 0FF69B4h
+	mov eax, map_x
+	add eax, 5
+	mov aux, eax
+	mov eax, map_y
+	add eax, 5
+	mov aux1, eax
+	make_image_macro "b", area, aux, aux1
 	jmp next
 	
 	enemy2:
@@ -1247,6 +1279,13 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	mov eax, aux1
 	add enemy1_y, eax
 	draw_square enemy1_x, enemy1_y, 0FF69B4h
+	mov eax, enemy1_x
+	add eax, 5
+	mov aux, eax
+	mov eax, enemy1_y
+	add eax, 5
+	mov aux1, eax
+	make_image_macro "b", area, aux, aux1
 	jmp no_movement
 	
 	defeat:
@@ -1882,7 +1921,7 @@ draw proc
 	mov eax, bomberman_y
 	add eax, 5
 	mov aux1, eax
-	make_image_macro "b", area, aux, aux1
+	make_image_macro "a", area, aux, aux1
 
 	;初始化方向按鈕的區域
 	draw_square area_width-100, area_height-100, 0A7A6A5h 
