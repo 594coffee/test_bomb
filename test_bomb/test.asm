@@ -148,8 +148,57 @@ make_color proc
 	je image_tool1color
 	cmp byte ptr [esi], 9
 	je image_gray
+	cmp byte ptr [esi], 10
+	je image_tool2color
+	cmp byte ptr [esi], 11
+	je image_light_purple
+	cmp byte ptr [esi], 12
+	je image_morelightpurple
+	cmp byte ptr [esi], 13
+	je image_darkskin
+	cmp byte ptr [esi], 14
+	je image_tool3color
+	cmp byte ptr [esi], 15
+	je image_doorcolor
+	cmp byte ptr [esi], 16
+	je image_brown
+	cmp byte ptr [esi], 17
+	je image_enemy2color
+	cmp byte ptr [esi], 18
+	je image_black
+	cmp byte ptr [esi], 19
+	je image_lightgreen
+	cmp byte ptr [esi], 20
+	je image_enemy3_color
+	cmp byte ptr [esi], 21
+	je image_orange
 	mov dword ptr [edi], 0
 	jmp color_end
+
+	image_orange:
+		mov dword ptr [edi], 0ee6622h
+		jmp color_end	
+	image_enemy3_color:
+		mov dword ptr [edi], 0AA00CCh
+		jmp color_end	
+	image_lightgreen:
+		mov dword ptr [edi], 99ee22h
+		jmp color_end			
+	image_black:
+		mov dword ptr [edi], 000000h
+		jmp color_end	
+	image_enemy2color:
+		mov dword ptr [edi], 00069B4h
+		jmp color_end																																																			
+	image_brown:
+		mov dword ptr [edi], 0AA5522h
+		jmp color_end
+	image_doorcolor:
+		mov dword ptr [edi], 0A0522Eh
+		jmp color_end	
+	image_tool2color:
+		mov dword ptr [edi], 0A0532Dh
+		jmp color_end	
 	image_gray:
 		mov dword ptr [edi], 0A7A6A5h
 		jmp color_end	
@@ -177,9 +226,23 @@ make_color proc
 	image_enemy1color:
 		mov dword ptr [edi], 0FF69B4h
 		jmp color_end
+	image_light_purple:
+		mov dword ptr [edi], 8866bbh
+		jmp color_end
+	image_morelightpurple:
+		mov dword ptr [edi], 0cccceeh
+		jmp color_end
+	image_darkskin:
+		mov dword ptr [edi], 0ddcccch
+		jmp color_end
+	image_tool3color:
+		mov dword ptr [edi], 0A0512Dh
+		jmp color_end
 	color_end:
 		ret
 make_color endp
+
+;make_text 程式在給定座標處顯示字母或數字
 make_text proc
 	push ebp
 	mov ebp, esp
@@ -233,7 +296,7 @@ cycle_symbol_row:
 	mov dword ptr [edi], 0
 	jmp simbol_pixel_next
 simbol_pixel_alb:
-	mov dword ptr [edi], 0A7A6A5h
+	mov dword ptr [edi],0A7A6A5h
 simbol_pixel_next:
 	inc esi
 	add edi, 4
@@ -672,6 +735,19 @@ endm
 
 tool3 macro                ;獲得道具3的巨集
     draw_square door_x, door_y, 000FF00h
+	push edx
+	push aux
+	push aux1
+	mov edx, door_x
+	add edx, 5
+	mov aux, edx
+	mov edx, door_y
+	add edx, 5
+	mov aux1, edx
+	make_image_macro "f", area, aux, aux1
+	pop aux1
+	pop aux
+	pop edx
 endm
 
 next_level macro            ;切換下一關的巨集
@@ -727,12 +803,13 @@ win_game macro                ;遊戲獲勝的巨集
     call memset
     add esp, 12
 
-    make_text_macro 'D', area, area_width/2-25, area_height/2
-    make_text_macro 'E', area, area_width/2-15, area_height/2
-    make_text_macro 'F', area, area_width/2-5, area_height/2
-    make_text_macro 'E', area, area_width/2+5, area_height/2
-    make_text_macro 'A', area, area_width/2+15, area_height/2
-    make_text_macro 'T', area, area_width/2+25, area_height/2
+    make_text_macro 'V', area, area_width/2-30, area_height/2
+	make_text_macro 'I', area, area_width/2-20, area_height/2
+	make_text_macro 'C', area, area_width/2-10, area_height/2
+	make_text_macro 'T', area, area_width/2, area_height/2
+	make_text_macro 'O', area, area_width/2+10, area_height/2
+	make_text_macro 'R', area, area_width/2+20, area_height/2
+	make_text_macro 'Y', area, area_width/2+30, area_height/2
 
     mov game_over_check, 1
 
@@ -833,18 +910,57 @@ local space, unbreakable, explosion_loop, clear_loop, breakable, crate, defeat, 
 	add x, diff_x
     add y, diff_y
     draw_square x, y, 0FFFF00h
+	push edx
+	push aux
+	push aux1
+	mov edx, x
+	add edx, 5
+	mov aux, edx
+	mov edx, y
+	add edx, 5
+	mov aux1, edx
+	make_image_macro "c", area, aux, aux1
+	pop aux1
+	pop aux
+	pop edx
     jmp unbreakable
 
 	take_tool2:
 	add x, diff_x
     add y, diff_y
     draw_square x, y, 073763h
+	push edx
+	push aux
+	push aux1
+	mov edx, x
+	add edx, 5
+	mov aux, edx
+	mov edx, y
+	add edx, 5
+	mov aux1, edx
+	make_image_macro "e", area, aux, aux1
+	pop aux1
+	pop aux
+	pop edx
     jmp unbreakable
 
 	take_tool3:
 	add x, diff_x
     add y, diff_y
     draw_square x, y, 0CAFFE5h
+	push edx
+	push aux
+	push aux1
+	mov edx, x
+	add edx, 5
+	mov aux, edx
+	mov edx, y
+	add edx, 5
+	mov aux1, edx
+	make_image_macro "d", area, aux, aux1
+	pop aux1
+	pop aux
+	pop edx
     jmp unbreakable
 
     defeat:
@@ -858,6 +974,19 @@ local space, unbreakable, explosion_loop, clear_loop, breakable, crate, defeat, 
 	add x, diff_x
     add y, diff_y
     draw_square x, y, 000FF00h
+	push edx
+	push aux
+	push aux1
+	mov edx, x
+	add edx, 5
+	mov aux, edx
+	mov edx, y
+	add edx, 5
+	mov aux1, edx
+	make_image_macro "f", area, aux, aux1
+	pop aux1
+	pop aux
+	pop edx
     jmp unbreakable
 
     enemy1:
@@ -1397,7 +1526,7 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
 	mov eax, enemy2_y
 	add eax, 5
 	mov aux1, eax
-	;make_image_macro "b", area, aux, aux1
+	make_image_macro "g", area, aux, aux1
 	jmp no_movement
 	
 	defeat:
@@ -1494,7 +1623,7 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
 	mov eax, enemy3_y
 	add eax, 5
 	mov aux1, eax
-	;make_image_macro "b", area, aux, aux1
+	make_image_macro "h", area, aux, aux1
 	jmp no_movement
 	
 	defeat:
@@ -1591,7 +1720,7 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
 	mov eax, enemy4_y
 	add eax, 5
 	mov aux1, eax
-	;make_image_macro "b", area, aux, aux1
+	make_image_macro "b", area, aux, aux1
 	jmp no_movement
 	
 	defeat:
@@ -1688,7 +1817,7 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
 	mov eax, enemy5_y
 	add eax, 5
 	mov aux1, eax
-	;make_image_macro "b", area, aux, aux1
+	make_image_macro "g", area, aux, aux1
 	jmp no_movement
 	
 	defeat:
@@ -1714,7 +1843,7 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
 	random
 	mov counterEnemy6, 0
 	inc counterEnemy_6
-	cmp counterEnemy_6, 1
+	cmp counterEnemy_6, 5
 	je no_movement
 
 	cmp edx, 0
@@ -1785,7 +1914,7 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
 	mov eax, enemy6_y
 	add eax, 5
 	mov aux1, eax
-	;make_image_macro "b", area, aux, aux1
+	make_image_macro "h", area, aux, aux1
 	jmp no_movement
 	
 	defeat:
@@ -1804,7 +1933,7 @@ enemy7_movement macro		;決定敵人7行動的巨集
 local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
 	
 	inc counterEnemy7
-	cmp counterEnemy7, 10
+	cmp counterEnemy7, 5
 	jne no_movement
 
 	reroll:	
@@ -1882,7 +2011,7 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
 	mov eax, enemy7_y
 	add eax, 5
 	mov aux1, eax
-	;make_image_macro "b", area, aux, aux1
+	make_image_macro "g", area, aux, aux1
 	jmp no_movement
 	
 	defeat:
@@ -1979,7 +2108,7 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
 	mov eax, enemy8_y
 	add eax, 5
 	mov aux1, eax
-	;make_image_macro "b", area, aux, aux1
+	make_image_macro "b", area, aux, aux1
 	jmp no_movement
 	
 	defeat:
