@@ -31,6 +31,14 @@ counterEnemy5 DD 0				;敵人5計時器初始為0
 counterEnemy6 DD 0				;敵人6計時器初始為0
 counterEnemy7 DD 0				;敵人7計時器初始為0
 counterEnemy8 DD 0				;敵人8計時器初始為0
+counterEnemy_1 DD 0				;敵人1計時器初始為0
+counterEnemy_2 DD 0				;敵人2計時器初始為0
+counterEnemy_3 DD 0				;敵人3計時器初始為0
+counterEnemy_4 DD 0				;敵人4計時器初始為0
+counterEnemy_5 DD 0				;敵人5計時器初始為0
+counterEnemy_6 DD 0				;敵人6計時器初始為0
+counterEnemy_7 DD 0				;敵人7計時器初始為0
+counterEnemy_8 DD 0				;敵人8計時器初始為0
 counterMap DD 0				;地圖編號初始為0
 map_x DD 0
 map_y DD 0
@@ -562,7 +570,7 @@ local button_fail, bomb_case, defeat, to_next, get_tool1, road, get_tool2, cantp
 
 	drawwall:
 	draw_square bomberman_x, bomberman_y, 0A0522Dh
-	mov last, 0
+	mov lastwall, 0
 	jmp bomb_case
 
 	drawtool1:
@@ -784,15 +792,15 @@ local space, unbreakable, explosion_loop, clear_loop, breakable, crate, defeat, 
     je enemy2
 	cmp dword ptr [eax], 0AA00CCh    ;敵人3
     je enemy3
-	cmp dword ptr [eax], 0AA00CCh    ;敵人4
+	cmp dword ptr [eax], 0000001h    ;敵人4
     je enemy4
-	cmp dword ptr [eax], 0AA00CCh    ;敵人5
+	cmp dword ptr [eax], 0000002h    ;敵人5
     je enemy5
-	cmp dword ptr [eax], 0AA00CCh    ;敵人6
+	cmp dword ptr [eax], 0000003h    ;敵人6
     je enemy6
-	cmp dword ptr [eax], 0AA00CCh    ;敵人7
+	cmp dword ptr [eax], 0000004h    ;敵人7
     je enemy7
-	cmp dword ptr [eax], 0AA00CCh    ;敵人8
+	cmp dword ptr [eax], 0000005h    ;敵人8
     je enemy8
     cmp dword ptr [eax], 0FF0000h    ;玩家
     je defeat
@@ -1204,21 +1212,26 @@ random macro			;決定隨機值 (0-4) 的巨集
 	mov random_aux, edx
 	
 	mov eax, random_aux
-	mov ebx,4;5
-	mov edx,0
+	mov ebx, 5;5
+	mov edx, 0
 	div ebx
 	;更改edx
 endm
 
 enemy1_movement macro		;決定敵人1行動的巨集
-local up,left,down,right, skip, defeat, reroll, no_movement, reset
+local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
+	
 	inc counterEnemy1
 	cmp counterEnemy1, 5
 	jne no_movement
-	
+
 	reroll:	
 	random
-	
+	mov counterEnemy1, 0
+	inc counterEnemy_1
+	cmp counterEnemy_1, 30
+	je no_movement
+
 	cmp edx, 0
 	je up
 	cmp edx, 1
@@ -1227,15 +1240,15 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	je down
 	cmp edx, 3
 	je right
-	;cmp edx, 4
-	;je skip
+	cmp edx, 4
+	je no_movement
 	
 	up:
 	mov aux, 0
 	mov aux1, -50
 	calculate_pozition enemy1_x,enemy1_y,aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne left
+	jne reroll
 	jmp skip
 	
 	left:
@@ -1243,37 +1256,39 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	mov aux1, 0
 	calculate_pozition enemy1_x,enemy1_y,aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne right
+	jne reroll
 	jmp skip
 	
 	right:
 	mov aux, 50
 	mov aux1, 0
-	calculate_pozition enemy1_x,enemy1_y,aux, aux1
+	calculate_pozition enemy1_x, enemy1_y, aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne down
+	jne reroll
 	jmp skip
 	
 	down:
 	mov aux, 0
 	mov aux1, 50
-	calculate_pozition enemy1_x,enemy1_y,aux, aux1
+	calculate_pozition enemy1_x, enemy1_y, aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne up
+	jne reroll
 	
 	skip:
 	mov counterEnemy1, 0
-	calculate_pozition enemy1_x,enemy1_y,aux, aux1
+	calculate_pozition enemy1_x, enemy1_y, aux, aux1
 	cmp dword ptr [eax], 0FF0000h
 	je defeat
-	
-	calculate_pozition enemy1_x,enemy1_y,aux,aux1
+	cmp dword ptr [eax], 0F59B00h
+	je kill
+
+	calculate_pozition enemy1_x, enemy1_y, aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
 	jne reroll
 	
 	reset:
 	draw_square enemy1_x, enemy1_y, 0FFFFFFh
-	
+
 	mov eax, aux
 	add enemy1_x, eax
 	mov eax, aux1
@@ -1291,19 +1306,29 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	defeat:
 	game_over
 	
+	kill:
+	calculate_pozition enemy1_x, enemy1_y, aux, aux1
+	mov enemy1_alive, 0
+	draw_square enemy1_x, enemy1_y, 0FFFFFFh
+
 	no_movement:
-	
+	mov counterEnemy_1, 0
 endm
 
 enemy2_movement macro		;決定敵人2行動的巨集
-local up,left,down,right, skip, defeat, reroll, no_movement, reset
+local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
+	
 	inc counterEnemy2
 	cmp counterEnemy2, 5
 	jne no_movement
-	
+
 	reroll:	
 	random
-	
+	mov counterEnemy2, 0
+	inc counterEnemy_2
+	cmp counterEnemy_2, 30
+	je no_movement
+
 	cmp edx, 0
 	je up
 	cmp edx, 1
@@ -1312,15 +1337,15 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	je down
 	cmp edx, 3
 	je right
-	;cmp edx, 4
-	;je skip
+	cmp edx, 4
+	je no_movement
 	
 	up:
 	mov aux, 0
 	mov aux1, -50
 	calculate_pozition enemy2_x,enemy2_y,aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne left
+	jne reroll
 	jmp skip
 	
 	left:
@@ -1328,60 +1353,79 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	mov aux1, 0
 	calculate_pozition enemy2_x,enemy2_y,aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne right
+	jne reroll
 	jmp skip
 	
 	right:
 	mov aux, 50
 	mov aux1, 0
-	calculate_pozition enemy2_x,enemy2_y,aux, aux1
+	calculate_pozition enemy2_x, enemy2_y, aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne down
+	jne reroll
 	jmp skip
 	
 	down:
 	mov aux, 0
 	mov aux1, 50
-	calculate_pozition enemy2_x,enemy2_y,aux, aux1
+	calculate_pozition enemy2_x, enemy2_y, aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne up
+	jne reroll
 	
 	skip:
-	mov counterEnemy2,0
-	calculate_pozition enemy2_x,enemy2_y,aux, aux1
+	mov counterEnemy2, 0
+	calculate_pozition enemy2_x, enemy2_y, aux, aux1
 	cmp dword ptr [eax], 0FF0000h
 	je defeat
-	
-	calculate_pozition enemy2_x,enemy2_y,aux,aux1
+	cmp dword ptr [eax], 0F59B00h
+	je kill
+
+	calculate_pozition enemy2_x, enemy2_y, aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
 	jne reroll
 	
 	reset:
 	draw_square enemy2_x, enemy2_y, 0FFFFFFh
-	
+
 	mov eax, aux
 	add enemy2_x, eax
 	mov eax, aux1
 	add enemy2_y, eax
 	draw_square enemy2_x, enemy2_y, 00069B4h
+	mov eax, enemy2_x
+	add eax, 5
+	mov aux, eax
+	mov eax, enemy2_y
+	add eax, 5
+	mov aux1, eax
+	;make_image_macro "b", area, aux, aux1
 	jmp no_movement
 	
 	defeat:
 	game_over
 	
+	kill:
+	calculate_pozition enemy2_x, enemy2_y, aux, aux1
+	mov enemy2_alive, 0
+	draw_square enemy2_x, enemy2_y, 0FFFFFFh
+
 	no_movement:
-	
+	mov counterEnemy_2, 0
 endm
 
 enemy3_movement macro		;決定敵人3行動的巨集
-local up,left,down,right, skip, defeat, reroll, no_movement, reset
+local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
+	
 	inc counterEnemy3
 	cmp counterEnemy3, 5
 	jne no_movement
-	
+
 	reroll:	
 	random
-	
+	mov counterEnemy3, 0
+	inc counterEnemy_3
+	cmp counterEnemy_3, 30
+	je no_movement
+
 	cmp edx, 0
 	je up
 	cmp edx, 1
@@ -1390,15 +1434,15 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	je down
 	cmp edx, 3
 	je right
-	;cmp edx, 4
-	;je skip
+	cmp edx, 4
+	je no_movement
 	
 	up:
 	mov aux, 0
 	mov aux1, -50
 	calculate_pozition enemy3_x,enemy3_y,aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne left
+	jne reroll
 	jmp skip
 	
 	left:
@@ -1406,60 +1450,79 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	mov aux1, 0
 	calculate_pozition enemy3_x,enemy3_y,aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne right
+	jne reroll
 	jmp skip
 	
 	right:
 	mov aux, 50
 	mov aux1, 0
-	calculate_pozition enemy3_x,enemy3_y,aux, aux1
+	calculate_pozition enemy3_x, enemy3_y, aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne down
+	jne reroll
 	jmp skip
 	
 	down:
 	mov aux, 0
 	mov aux1, 50
-	calculate_pozition enemy3_x,enemy3_y,aux, aux1
+	calculate_pozition enemy3_x, enemy3_y, aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne up
+	jne reroll
 	
 	skip:
-	mov counterEnemy3,0
-	calculate_pozition enemy3_x,enemy3_y,aux, aux1
+	mov counterEnemy3, 0
+	calculate_pozition enemy3_x, enemy3_y, aux, aux1
 	cmp dword ptr [eax], 0FF0000h
 	je defeat
-	
-	calculate_pozition enemy3_x,enemy3_y,aux,aux1
+	cmp dword ptr [eax], 0F59B00h
+	je kill
+
+	calculate_pozition enemy3_x, enemy3_y, aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
 	jne reroll
 	
 	reset:
 	draw_square enemy3_x, enemy3_y, 0FFFFFFh
-	
+
 	mov eax, aux
 	add enemy3_x, eax
 	mov eax, aux1
 	add enemy3_y, eax
 	draw_square enemy3_x, enemy3_y, 0AA00CCh
+	mov eax, enemy3_x
+	add eax, 5
+	mov aux, eax
+	mov eax, enemy3_y
+	add eax, 5
+	mov aux1, eax
+	;make_image_macro "b", area, aux, aux1
 	jmp no_movement
 	
 	defeat:
 	game_over
 	
+	kill:
+	calculate_pozition enemy3_x, enemy3_y, aux, aux1
+	mov enemy3_alive, 0
+	draw_square enemy3_x, enemy3_y, 0FFFFFFh
+
 	no_movement:
-	
+	mov counterEnemy_3, 0
 endm
 
 enemy4_movement macro		;決定敵人4行動的巨集
-local up,left,down,right, skip, defeat, reroll, no_movement, reset
+local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
+	
 	inc counterEnemy4
 	cmp counterEnemy4, 5
 	jne no_movement
-	
+
 	reroll:	
 	random
-	
+	mov counterEnemy4, 0
+	inc counterEnemy_4
+	cmp counterEnemy_4, 30
+	je no_movement
+
 	cmp edx, 0
 	je up
 	cmp edx, 1
@@ -1468,15 +1531,15 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	je down
 	cmp edx, 3
 	je right
-	;cmp edx, 4
-	;je skip
+	cmp edx, 4
+	je no_movement
 	
 	up:
 	mov aux, 0
 	mov aux1, -50
 	calculate_pozition enemy4_x,enemy4_y,aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne left
+	jne reroll
 	jmp skip
 	
 	left:
@@ -1484,60 +1547,79 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	mov aux1, 0
 	calculate_pozition enemy4_x,enemy4_y,aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne right
+	jne reroll
 	jmp skip
 	
 	right:
 	mov aux, 50
 	mov aux1, 0
-	calculate_pozition enemy4_x,enemy4_y,aux, aux1
+	calculate_pozition enemy4_x, enemy4_y, aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne down
+	jne reroll
 	jmp skip
 	
 	down:
 	mov aux, 0
 	mov aux1, 50
-	calculate_pozition enemy4_x,enemy4_y,aux, aux1
+	calculate_pozition enemy4_x, enemy4_y, aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne up
+	jne reroll
 	
 	skip:
-	mov counterEnemy4,0
-	calculate_pozition enemy4_x,enemy4_y,aux, aux1
+	mov counterEnemy4, 0
+	calculate_pozition enemy4_x, enemy4_y, aux, aux1
 	cmp dword ptr [eax], 0FF0000h
 	je defeat
-	
-	calculate_pozition enemy4_x,enemy4_y,aux,aux1
+	cmp dword ptr [eax], 0F59B00h
+	je kill
+
+	calculate_pozition enemy4_x, enemy4_y, aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
 	jne reroll
 	
 	reset:
 	draw_square enemy4_x, enemy4_y, 0FFFFFFh
-	
+
 	mov eax, aux
 	add enemy4_x, eax
 	mov eax, aux1
 	add enemy4_y, eax
 	draw_square enemy4_x, enemy4_y, 0000001h
+	mov eax, enemy4_x
+	add eax, 5
+	mov aux, eax
+	mov eax, enemy4_y
+	add eax, 5
+	mov aux1, eax
+	;make_image_macro "b", area, aux, aux1
 	jmp no_movement
 	
 	defeat:
 	game_over
 	
+	kill:
+	calculate_pozition enemy4_x, enemy4_y, aux, aux1
+	mov enemy4_alive, 0
+	draw_square enemy4_x, enemy4_y, 0FFFFFFh
+
 	no_movement:
-	
+	mov counterEnemy_4, 0
 endm
 
 enemy5_movement macro		;決定敵人5行動的巨集
-local up,left,down,right, skip, defeat, reroll, no_movement, reset
+local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
+	
 	inc counterEnemy5
 	cmp counterEnemy5, 5
 	jne no_movement
-	
+
 	reroll:	
 	random
-	
+	mov counterEnemy5, 0
+	inc counterEnemy_5
+	cmp counterEnemy_5, 30
+	je no_movement
+
 	cmp edx, 0
 	je up
 	cmp edx, 1
@@ -1546,15 +1628,15 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	je down
 	cmp edx, 3
 	je right
-	;cmp edx, 4
-	;je skip
+	cmp edx, 4
+	je no_movement
 	
 	up:
 	mov aux, 0
 	mov aux1, -50
 	calculate_pozition enemy5_x,enemy5_y,aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne left
+	jne reroll
 	jmp skip
 	
 	left:
@@ -1562,60 +1644,79 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	mov aux1, 0
 	calculate_pozition enemy5_x,enemy5_y,aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne right
+	jne reroll
 	jmp skip
 	
 	right:
 	mov aux, 50
 	mov aux1, 0
-	calculate_pozition enemy5_x,enemy5_y,aux, aux1
+	calculate_pozition enemy5_x, enemy5_y, aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne down
+	jne reroll
 	jmp skip
 	
 	down:
 	mov aux, 0
 	mov aux1, 50
-	calculate_pozition enemy5_x,enemy5_y,aux, aux1
+	calculate_pozition enemy5_x, enemy5_y, aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne up
+	jne reroll
 	
 	skip:
-	mov counterEnemy5,0
-	calculate_pozition enemy5_x,enemy5_y,aux, aux1
+	mov counterEnemy5, 0
+	calculate_pozition enemy5_x, enemy5_y, aux, aux1
 	cmp dword ptr [eax], 0FF0000h
 	je defeat
-	
-	calculate_pozition enemy5_x,enemy5_y,aux,aux1
+	cmp dword ptr [eax], 0F59B00h
+	je kill
+
+	calculate_pozition enemy5_x, enemy5_y, aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
 	jne reroll
 	
 	reset:
 	draw_square enemy5_x, enemy5_y, 0FFFFFFh
-	
+
 	mov eax, aux
 	add enemy5_x, eax
 	mov eax, aux1
 	add enemy5_y, eax
 	draw_square enemy5_x, enemy5_y, 0000002h
+	mov eax, enemy5_x
+	add eax, 5
+	mov aux, eax
+	mov eax, enemy5_y
+	add eax, 5
+	mov aux1, eax
+	;make_image_macro "b", area, aux, aux1
 	jmp no_movement
 	
 	defeat:
 	game_over
 	
+	kill:
+	calculate_pozition enemy5_x, enemy5_y, aux, aux1
+	mov enemy5_alive, 0
+	draw_square enemy5_x, enemy5_y, 0FFFFFFh
+
 	no_movement:
-	
+	mov counterEnemy_5, 0
 endm
 
 enemy6_movement macro		;決定敵人6行動的巨集
-local up,left,down,right, skip, defeat, reroll, no_movement, reset
+local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
+	
 	inc counterEnemy6
 	cmp counterEnemy6, 5
 	jne no_movement
-	
+
 	reroll:	
 	random
-	
+	mov counterEnemy6, 0
+	inc counterEnemy_6
+	cmp counterEnemy_6, 30
+	je no_movement
+
 	cmp edx, 0
 	je up
 	cmp edx, 1
@@ -1624,15 +1725,15 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	je down
 	cmp edx, 3
 	je right
-	;cmp edx, 4
-	;je skip
+	cmp edx, 4
+	je no_movement
 	
 	up:
 	mov aux, 0
 	mov aux1, -50
 	calculate_pozition enemy6_x,enemy6_y,aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne left
+	jne reroll
 	jmp skip
 	
 	left:
@@ -1640,60 +1741,79 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	mov aux1, 0
 	calculate_pozition enemy6_x,enemy6_y,aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne right
+	jne reroll
 	jmp skip
 	
 	right:
 	mov aux, 50
 	mov aux1, 0
-	calculate_pozition enemy6_x,enemy6_y,aux, aux1
+	calculate_pozition enemy6_x, enemy6_y, aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne down
+	jne reroll
 	jmp skip
 	
 	down:
 	mov aux, 0
 	mov aux1, 50
-	calculate_pozition enemy6_x,enemy6_y,aux, aux1
+	calculate_pozition enemy6_x, enemy6_y, aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne up
+	jne reroll
 	
 	skip:
-	mov counterEnemy6,0
-	calculate_pozition enemy6_x,enemy6_y,aux, aux1
+	mov counterEnemy6, 0
+	calculate_pozition enemy6_x, enemy6_y, aux, aux1
 	cmp dword ptr [eax], 0FF0000h
 	je defeat
-	
-	calculate_pozition enemy6_x,enemy6_y,aux,aux1
+	cmp dword ptr [eax], 0F59B00h
+	je kill
+
+	calculate_pozition enemy6_x, enemy6_y, aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
 	jne reroll
 	
 	reset:
 	draw_square enemy6_x, enemy6_y, 0FFFFFFh
-	
+
 	mov eax, aux
 	add enemy6_x, eax
 	mov eax, aux1
 	add enemy6_y, eax
 	draw_square enemy6_x, enemy6_y, 0000003h
+	mov eax, enemy6_x
+	add eax, 5
+	mov aux, eax
+	mov eax, enemy6_y
+	add eax, 5
+	mov aux1, eax
+	;make_image_macro "b", area, aux, aux1
 	jmp no_movement
 	
 	defeat:
 	game_over
 	
+	kill:
+	calculate_pozition enemy6_x, enemy6_y, aux, aux1
+	mov enemy6_alive, 0
+	draw_square enemy6_x, enemy6_y, 0FFFFFFh
+
 	no_movement:
-	
+	mov counterEnemy_6, 0
 endm
 
 enemy7_movement macro		;決定敵人7行動的巨集
-local up,left,down,right, skip, defeat, reroll, no_movement, reset
+local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
+	
 	inc counterEnemy7
 	cmp counterEnemy7, 5
 	jne no_movement
-	
+
 	reroll:	
 	random
-	
+	mov counterEnemy7, 0
+	inc counterEnemy_7
+	cmp counterEnemy_7, 30
+	je no_movement
+
 	cmp edx, 0
 	je up
 	cmp edx, 1
@@ -1702,15 +1822,15 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	je down
 	cmp edx, 3
 	je right
-	;cmp edx, 4
-	;je skip
+	cmp edx, 4
+	je no_movement
 	
 	up:
 	mov aux, 0
 	mov aux1, -50
 	calculate_pozition enemy7_x,enemy7_y,aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne left
+	jne reroll
 	jmp skip
 	
 	left:
@@ -1718,60 +1838,79 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	mov aux1, 0
 	calculate_pozition enemy7_x,enemy7_y,aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne right
+	jne reroll
 	jmp skip
 	
 	right:
 	mov aux, 50
 	mov aux1, 0
-	calculate_pozition enemy7_x,enemy7_y,aux, aux1
+	calculate_pozition enemy7_x, enemy7_y, aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne down
+	jne reroll
 	jmp skip
 	
 	down:
 	mov aux, 0
 	mov aux1, 50
-	calculate_pozition enemy7_x,enemy7_y,aux, aux1
+	calculate_pozition enemy7_x, enemy7_y, aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne up
+	jne reroll
 	
 	skip:
-	mov counterEnemy7,0
-	calculate_pozition enemy7_x,enemy7_y,aux, aux1
+	mov counterEnemy7, 0
+	calculate_pozition enemy7_x, enemy7_y, aux, aux1
 	cmp dword ptr [eax], 0FF0000h
 	je defeat
-	
-	calculate_pozition enemy7_x,enemy7_y,aux,aux1
+	cmp dword ptr [eax], 0F59B00h
+	je kill
+
+	calculate_pozition enemy7_x, enemy7_y, aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
 	jne reroll
 	
 	reset:
 	draw_square enemy7_x, enemy7_y, 0FFFFFFh
-	
+
 	mov eax, aux
 	add enemy7_x, eax
 	mov eax, aux1
 	add enemy7_y, eax
 	draw_square enemy7_x, enemy7_y, 0000004h
+	mov eax, enemy7_x
+	add eax, 5
+	mov aux, eax
+	mov eax, enemy7_y
+	add eax, 5
+	mov aux1, eax
+	;make_image_macro "b", area, aux, aux1
 	jmp no_movement
 	
 	defeat:
 	game_over
 	
+	kill:
+	calculate_pozition enemy7_x, enemy7_y, aux, aux1
+	mov enemy7_alive, 0
+	draw_square enemy7_x, enemy7_y, 0FFFFFFh
+
 	no_movement:
-	
+	mov counterEnemy_7, 0
 endm
 
 enemy8_movement macro		;決定敵人8行動的巨集
-local up,left,down,right, skip, defeat, reroll, no_movement, reset
+local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
+	
 	inc counterEnemy8
 	cmp counterEnemy8, 5
 	jne no_movement
-	
+
 	reroll:	
 	random
-	
+	mov counterEnemy8, 0
+	inc counterEnemy_8
+	cmp counterEnemy_8, 30
+	je no_movement
+
 	cmp edx, 0
 	je up
 	cmp edx, 1
@@ -1780,15 +1919,15 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	je down
 	cmp edx, 3
 	je right
-	;cmp edx, 4
-	;je skip
+	cmp edx, 4
+	je no_movement
 	
 	up:
 	mov aux, 0
 	mov aux1, -50
 	calculate_pozition enemy8_x,enemy8_y,aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne left
+	jne reroll
 	jmp skip
 	
 	left:
@@ -1796,49 +1935,63 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset
 	mov aux1, 0
 	calculate_pozition enemy8_x,enemy8_y,aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne right
+	jne reroll
 	jmp skip
 	
 	right:
 	mov aux, 50
 	mov aux1, 0
-	calculate_pozition enemy8_x,enemy8_y,aux, aux1
+	calculate_pozition enemy8_x, enemy8_y, aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne down
+	jne reroll
 	jmp skip
 	
 	down:
 	mov aux, 0
 	mov aux1, 50
-	calculate_pozition enemy8_x,enemy8_y,aux, aux1
+	calculate_pozition enemy8_x, enemy8_y, aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
-	jne up
+	jne reroll
 	
 	skip:
-	mov counterEnemy8,0
-	calculate_pozition enemy8_x,enemy8_y,aux, aux1
+	mov counterEnemy8, 0
+	calculate_pozition enemy8_x, enemy8_y, aux, aux1
 	cmp dword ptr [eax], 0FF0000h
 	je defeat
-	
-	calculate_pozition enemy8_x,enemy8_y,aux,aux1
+	cmp dword ptr [eax], 0F59B00h
+	je kill
+
+	calculate_pozition enemy8_x, enemy8_y, aux, aux1
 	cmp dword ptr [eax], 0FFFFFFh
 	jne reroll
 	
 	reset:
 	draw_square enemy8_x, enemy8_y, 0FFFFFFh
-	
+
 	mov eax, aux
 	add enemy8_x, eax
 	mov eax, aux1
 	add enemy8_y, eax
 	draw_square enemy8_x, enemy8_y, 0000005h
+	mov eax, enemy8_x
+	add eax, 5
+	mov aux, eax
+	mov eax, enemy8_y
+	add eax, 5
+	mov aux1, eax
+	;make_image_macro "b", area, aux, aux1
 	jmp no_movement
 	
 	defeat:
 	game_over
 	
+	kill:
+	calculate_pozition enemy8_x, enemy8_y, aux, aux1
+	mov enemy8_alive, 0
+	draw_square enemy8_x, enemy8_y, 0FFFFFFh
+
 	no_movement:
-	
+	mov counterEnemy_8, 0
 endm
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;procedure
