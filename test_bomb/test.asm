@@ -479,7 +479,7 @@ local button_fail, bomb_case, defeat, to_next, get_tool1, road, get_tool2, cantp
 	je get_tool1
 
 	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y	;遇到道具2
-	cmp dword ptr [eax], 0A300E5h
+	cmp dword ptr [eax], 073763h
 	je get_tool2
 
 	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y	;遇到道具3
@@ -838,7 +838,7 @@ local space, unbreakable, explosion_loop, clear_loop, breakable, crate, defeat, 
 	take_tool2:
 	add x, diff_x
     add y, diff_y
-    draw_square x, y, 0A300E5h
+    draw_square x, y, 073763h
     jmp unbreakable
 
 	take_tool3:
@@ -1319,7 +1319,7 @@ enemy2_movement macro		;決定敵人2行動的巨集
 local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
 	
 	inc counterEnemy2
-	cmp counterEnemy2, 5
+	cmp counterEnemy2, 3
 	jne no_movement
 
 	reroll:	
@@ -1416,14 +1416,14 @@ enemy3_movement macro		;決定敵人3行動的巨集
 local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
 	
 	inc counterEnemy3
-	cmp counterEnemy3, 5
+	cmp counterEnemy3, 7
 	jne no_movement
 
 	reroll:	
 	random
 	mov counterEnemy3, 0
 	inc counterEnemy_3
-	cmp counterEnemy_3, 30
+	cmp counterEnemy_3, 5
 	je no_movement
 
 	cmp edx, 0
@@ -1513,7 +1513,7 @@ enemy4_movement macro		;決定敵人4行動的巨集
 local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
 	
 	inc counterEnemy4
-	cmp counterEnemy4, 5
+	cmp counterEnemy4, 2
 	jne no_movement
 
 	reroll:	
@@ -1617,7 +1617,7 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
 	random
 	mov counterEnemy5, 0
 	inc counterEnemy_5
-	cmp counterEnemy_5, 30
+	cmp counterEnemy_5, 10
 	je no_movement
 
 	cmp edx, 0
@@ -1707,14 +1707,14 @@ enemy6_movement macro		;決定敵人6行動的巨集
 local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
 	
 	inc counterEnemy6
-	cmp counterEnemy6, 5
+	cmp counterEnemy6, 3
 	jne no_movement
 
 	reroll:	
 	random
 	mov counterEnemy6, 0
 	inc counterEnemy_6
-	cmp counterEnemy_6, 30
+	cmp counterEnemy_6, 1
 	je no_movement
 
 	cmp edx, 0
@@ -1804,7 +1804,7 @@ enemy7_movement macro		;決定敵人7行動的巨集
 local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
 	
 	inc counterEnemy7
-	cmp counterEnemy7, 5
+	cmp counterEnemy7, 10
 	jne no_movement
 
 	reroll:	
@@ -1908,7 +1908,7 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
 	random
 	mov counterEnemy8, 0
 	inc counterEnemy_8
-	cmp counterEnemy_8, 30
+	cmp counterEnemy_8, 2
 	je no_movement
 
 	cmp edx, 0
