@@ -451,23 +451,23 @@ local button_fail, bomb_case, defeat, to_next, get_tool1, road, get_tool2, cantp
 	je defeat
 
 	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y	;遇到敵人4
-	cmp dword ptr [eax], 0000001h
+	cmp dword ptr [eax], 0F2DB94h
 	je defeat
 
 	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y	;遇到敵人5
-	cmp dword ptr [eax], 0000002h
+	cmp dword ptr [eax], 01E0ECh
 	je defeat
 
 	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y	;遇到敵人6
-	cmp dword ptr [eax], 0000003h
+	cmp dword ptr [eax], 4C004Ah
 	je defeat
 
 	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y	;遇到敵人7
-	cmp dword ptr [eax], 0000004h
+	cmp dword ptr [eax], 0BF9000h
 	je defeat
 
 	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y	;遇到敵人8
-	cmp dword ptr [eax], 0000005h
+	cmp dword ptr [eax], 0C42E5Bh
 	je defeat
 
 	calculate_pozition bomberman_x,bomberman_y,diff_x, diff_y	;遇到門
@@ -792,15 +792,15 @@ local space, unbreakable, explosion_loop, clear_loop, breakable, crate, defeat, 
     je enemy2
 	cmp dword ptr [eax], 0AA00CCh    ;敵人3
     je enemy3
-	cmp dword ptr [eax], 0000001h    ;敵人4
+	cmp dword ptr [eax], 0F2DB94h    ;敵人4
     je enemy4
-	cmp dword ptr [eax], 0000002h    ;敵人5
+	cmp dword ptr [eax], 01E0ECh    ;敵人5
     je enemy5
-	cmp dword ptr [eax], 0000003h    ;敵人6
+	cmp dword ptr [eax], 4C004Ah    ;敵人6
     je enemy6
-	cmp dword ptr [eax], 0000004h    ;敵人7
+	cmp dword ptr [eax], 0BF9000h    ;敵人7
     je enemy7
-	cmp dword ptr [eax], 0000005h    ;敵人8
+	cmp dword ptr [eax], 0C42E5Bh    ;敵人8
     je enemy8
     cmp dword ptr [eax], 0FF0000h    ;玩家
     je defeat
@@ -1118,7 +1118,7 @@ local done, loop_, wall, crate, road, door, tool1, tool2, tool3, enemy1, enemy2,
 	mov enemy4_x, eax
 	mov eax,map_y
 	mov enemy4_y, eax
-	draw_square map_x, map_y, 0000001h
+	draw_square map_x, map_y, 0F2DB94h
 	jmp next
 
 	enemy5:
@@ -1127,7 +1127,7 @@ local done, loop_, wall, crate, road, door, tool1, tool2, tool3, enemy1, enemy2,
 	mov enemy5_x, eax
 	mov eax,map_y
 	mov enemy5_y, eax
-	draw_square map_x, map_y, 0000002h
+	draw_square map_x, map_y, 01E0ECh
 	jmp next
 
 	enemy6:
@@ -1136,7 +1136,7 @@ local done, loop_, wall, crate, road, door, tool1, tool2, tool3, enemy1, enemy2,
 	mov enemy6_x, eax
 	mov eax,map_y
 	mov enemy6_y, eax
-	draw_square map_x, map_y, 0000003h
+	draw_square map_x, map_y, 4C004Ah
 	jmp next
 
 	enemy7:
@@ -1145,7 +1145,7 @@ local done, loop_, wall, crate, road, door, tool1, tool2, tool3, enemy1, enemy2,
 	mov enemy7_x, eax
 	mov eax,map_y
 	mov enemy7_y, eax
-	draw_square map_x, map_y, 0000004h
+	draw_square map_x, map_y, 0BF9000h
 	jmp next
 
 	enemy8:
@@ -1154,7 +1154,7 @@ local done, loop_, wall, crate, road, door, tool1, tool2, tool3, enemy1, enemy2,
 	mov enemy8_x, eax
 	mov eax,map_y
 	mov enemy8_y, eax
-	draw_square map_x, map_y, 0000005h
+	draw_square map_x, map_y, 0C42E5Bh
 	jmp next
 
 
@@ -1584,7 +1584,7 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
 	add enemy4_x, eax
 	mov eax, aux1
 	add enemy4_y, eax
-	draw_square enemy4_x, enemy4_y, 0000001h
+	draw_square enemy4_x, enemy4_y, 0F2DB94h
 	mov eax, enemy4_x
 	add eax, 5
 	mov aux, eax
@@ -1681,7 +1681,7 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
 	add enemy5_x, eax
 	mov eax, aux1
 	add enemy5_y, eax
-	draw_square enemy5_x, enemy5_y, 0000002h
+	draw_square enemy5_x, enemy5_y, 01E0ECh
 	mov eax, enemy5_x
 	add eax, 5
 	mov aux, eax
@@ -1778,7 +1778,7 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
 	add enemy6_x, eax
 	mov eax, aux1
 	add enemy6_y, eax
-	draw_square enemy6_x, enemy6_y, 0000003h
+	draw_square enemy6_x, enemy6_y, 4C004Ah
 	mov eax, enemy6_x
 	add eax, 5
 	mov aux, eax
@@ -1875,7 +1875,7 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
 	add enemy7_x, eax
 	mov eax, aux1
 	add enemy7_y, eax
-	draw_square enemy7_x, enemy7_y, 0000004h
+	draw_square enemy7_x, enemy7_y, 0BF9000h
 	mov eax, enemy7_x
 	add eax, 5
 	mov aux, eax
@@ -1972,7 +1972,7 @@ local up,left,down,right, skip, defeat, reroll, no_movement, reset, kill
 	add enemy8_x, eax
 	mov eax, aux1
 	add enemy8_y, eax
-	draw_square enemy8_x, enemy8_y, 0000005h
+	draw_square enemy8_x, enemy8_y, 0C42E5Bh
 	mov eax, enemy8_x
 	add eax, 5
 	mov aux, eax
