@@ -39,7 +39,7 @@ counterEnemy_5 DD 0				;敵人5計時器初始為0
 counterEnemy_6 DD 0				;敵人6計時器初始為0
 counterEnemy_7 DD 0				;敵人7計時器初始為0
 counterEnemy_8 DD 0				;敵人8計時器初始為0
-counterMap DD 0				;地圖編號初始為0
+counterMap DD 0					;地圖編號初始為0
 map_x DD 0
 map_y DD 0
 door_seed DD 0
@@ -194,16 +194,16 @@ make_color proc
 		mov dword ptr [edi], 0AA5522h
 		jmp color_end
 	image_doorcolor:
-		mov dword ptr [edi], 0A0522Eh
+		mov dword ptr [edi], 00FF00h
 		jmp color_end	
 	image_tool2color:
-		mov dword ptr [edi], 0A0532Dh
+		mov dword ptr [edi], 073763h
 		jmp color_end	
 	image_gray:
 		mov dword ptr [edi], 0A7A6A5h
 		jmp color_end	
 	image_tool1color:
-		mov dword ptr [edi], 0A0522Ch
+		mov dword ptr [edi], 0FFFF00h
 		jmp color_end
 	image_yellow:
 		mov dword ptr [edi], 0ffdd33h
@@ -236,7 +236,7 @@ make_color proc
 		mov dword ptr [edi], 0ddcccch
 		jmp color_end
 	image_tool3color:
-		mov dword ptr [edi], 0A0512Dh
+		mov dword ptr [edi], 0CAFFE5h
 		jmp color_end
 	color_end:
 		ret
