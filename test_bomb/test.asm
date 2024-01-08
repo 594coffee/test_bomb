@@ -128,7 +128,7 @@ random_aux DD 371
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;code
 .code
-;make_text 程式在給定座標處顯示字母或數字
+;make_text 程式在給定座標處顯示顏色
 make_color proc
 	cmp byte ptr [esi], 0
 	je image_red
@@ -197,7 +197,7 @@ make_color proc
 		mov dword ptr [edi], 00FF00h
 		jmp color_end	
 	image_tool2color:
-		mov dword ptr [edi], 073763h
+		mov dword ptr [edi], 0CAFFE5h
 		jmp color_end	
 	image_gray:
 		mov dword ptr [edi], 0A7A6A5h
@@ -236,7 +236,7 @@ make_color proc
 		mov dword ptr [edi], 0ddcccch
 		jmp color_end
 	image_tool3color:
-		mov dword ptr [edi], 0CAFFE5h
+		mov dword ptr [edi], 073763h
 		jmp color_end
 	color_end:
 		ret
@@ -310,7 +310,7 @@ make_done:
 	ret
 make_text endp
 
-make_image proc ; 畫尼哥圖
+make_image proc ; 程式在給定座標處顯示圖案
 	push ebp
 	mov ebp, esp
 	pusha
@@ -368,7 +368,7 @@ make_text_macro macro symbol, drawArea, x, y	;整合呼叫繪製符號的巨集
 	add esp, 16
 endm
 
-make_image_macro macro image, drawArea, x, y
+make_image_macro macro image, drawArea, x, y	;整合呼叫繪製圖案
 	push y
 	push x
 	push drawArea
@@ -1306,31 +1306,6 @@ done:
 	pop ebp
 endm
 
-random_door_seed macro	;決定隨機值 (0-1) 的巨集
-	push eax
-	push ebx
-	push ecx
-	push edx
-	mov eax, random_aux
-	mul bomberman_y
-	add eax, bomberman_x
-	mov aux1,773	
-	mov edx, 0
-	div aux1
-	mov random_aux, edx
-	
-	mov eax, random_aux
-	mov ebx,2
-	mov edx,0
-	div ebx
-	mov door_seed, edx
-	;更改edx
-	pop edx
-	pop ecx
-	pop ebx
-	pop eax
-endm
-
 random macro			;決定隨機值 (0-4) 的巨集
 	mov eax, random_aux
 	mul bomberman_y
@@ -2224,10 +2199,12 @@ draw proc
 	jmp final_draw
 	
 evt_click:
-	;檢查按鈕的按下狀況
+	;檢查玩家是否輸了
 	cmp game_over_check,1
 	je final_draw
-	press_button[ebp+arg2], [ebp+arg3], button_up_x, button_up_y, 0, -50
+
+	;檢查按鈕的按下狀況
+	press_button [ebp+arg2], [ebp+arg3], button_up_x, button_up_y, 0, -50
 	press_button [ebp+arg2], [ebp+arg3], button_left_x, button_left_y, -50, 0
 	press_button [ebp+arg2], [ebp+arg3], button_down_x, button_down_y, 0, 50
 	press_button [ebp+arg2], [ebp+arg3], button_right_x, button_right_y, 50, 0
